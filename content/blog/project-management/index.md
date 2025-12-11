@@ -1,4 +1,5 @@
 ---
+draft: true
 title: ✅ Manage your projects
 summary: Easily manage your projects - create ideation mind maps, Gantt charts, todo lists, and more!
 date: 2023-10-23
@@ -102,8 +103,8 @@ You can even write your todo lists in Markdown too:
 
 renders as
 
-- [x] Write math example
-  - [x] Write diagram example
+- [ ] Write math example
+  - [ ] Write diagram example
 - [ ] Do something else
 
 ## Did you find this page helpful? Consider sharing it 🙌
