@@ -12,19 +12,15 @@ main:
     identifier: V9O6rTQa
     url: /#papers
     weight: 20
-  - name: News
-    identifier: sFn6__Xe
-    url: /#news
-    weight: 30
   - name: Experience
     identifier: 0LJwBE8V
     url: experience/
-    weight: 40
+    weight: 30
   - name: Projects
     identifier: b0CFQy2K
     url: projects/
-    weight: 50
+    weight: 40
   - name: Courses
     identifier: udBI4x8i
     url: courses/
-    weight: 60
+    weight: 50
