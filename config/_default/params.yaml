@@ -127,26 +127,29 @@ hugoblox:
   # ────────────────────────────────────────────────────────────────────────────
   seo:
     # Browser tab title override (defaults to identity.name if not set)
-    title: ""
     # For local_business identity type only
     location:
       address:
-        street: ""
-        city: ""
-        region: ""
-        postal_code: ""
-        country: ""
+        street: "Wangjing International R&D Park"
+        city: "Beijing"
+        postal_code: "100102"
+        country: "CN"
+        region: Chaoyang District
       coordinates:
-        latitude: null
-        longitude: null
+        latitude: 40.006842
+        longitude: 116.488611
       phone: ""
     # AI/LLM crawler guidance (llms.txt)
     ai:
       allow:
         - /
-      disallow: []
-      note: "Guidance for AI crawlers - customize to match your public content."
-      contact: ""
+      disallow:
+        - /private/
+        - /drafts/
+        - /admin/
+      note: Personal academic website of Lin Shang, a Senior AI Algorithm Researcher at Meituan. This site contains publications, research projects, and blog posts about AI, Reasoning, and NLP.
+      contact: leishanglin@meitaun.com
+    title: Shanglin | AI Research | Meituan
 
   # ────────────────────────────────────────────────────────────────────────────
   # CONTENT
@@ -173,7 +176,12 @@ hugoblox:
   search:
     enable: true
     # Trending/suggested search terms
-    suggestions: []
+    suggestions:
+      - Reasoning
+      - LLM
+      - NLP
+      - Publications
+      - Projects
     # Quick action shortcuts in search modal
     quick_actions: []
 
@@ -219,7 +227,7 @@ hugoblox:
   # Search engine site verification codes
   # ────────────────────────────────────────────────────────────────────────────
   verification:
-    google: ""
+    google: "bD3sVqIInHw6X5fPZAZhf_NGSHMAAfcb1RzDqJR3U24"
     bing: ""
     baidu: ""
     yandex: ""
