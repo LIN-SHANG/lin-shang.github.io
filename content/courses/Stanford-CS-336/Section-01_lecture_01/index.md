@@ -1,6 +1,6 @@
 ---
 title: CS336 lecture-01 - tokenizer
-linktitle: lecture-01
+linktitle: Section-01_lecture-01
 summary: 关于 Stanford CS336 Large Language Model Systems 的系统性课程解读与笔记。
 date: 2025-12-14
 type: docs
