@@ -1,0 +1,52 @@
+<!-- 
+  文件位置: layouts/_partials/hooks/head-end/custom_style.html
+  作用: 仅在 type: docs 的页面（课程详情页）强制变宽，不影响首页和列表页
+-->
+
+{{ if eq .Type "docs" }}
+<style>
+  /* =========================================
+     1. 解锁页面主容器 (Container)
+     ========================================= */
+  @media (min-width: 1200px) {
+    /* 针对大屏幕，让容器占据 95% 的视口宽度 */
+    .container, .mx-auto {
+      max-width: 95vw !important; 
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+    }
+  }
+
+  /* =========================================
+     2. 解锁文章正文 (Prose)
+     ========================================= */
+  /* 打破 65ch 限制 */
+  .prose {
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* 让正文居中 */
+  .page-body {
+    width: 100% !important;
+  }
+
+  /* =========================================
+     3. 优化代码块和图片
+     ========================================= */
+  /* 让代码块利用全宽 */
+  .prose pre {
+    max-width: 100% !important;
+    margin: 1.5rem 0 !important;
+  }
+
+  /* 图片限制：不让图片无限拉伸，最大 800px 或者 60% */
+  /* 这样截图 1 那种超大图的情况即便在 docs 里出现也会稍微收敛一点 */
+  .prose img {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80% !important; /* 你可以根据喜好调整这个比例 */
+    height: auto !important;
+  }
+</style>
+{{ end }}

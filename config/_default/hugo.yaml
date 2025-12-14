@@ -20,7 +20,7 @@ removePathAccents: true
 ############################
 ## ADVANCED
 ############################
-
+timeZone: "Asia/Shanghai"  # 设置为你的实际时区
 build:
   writeStats: true
 enableGitInfo: false
