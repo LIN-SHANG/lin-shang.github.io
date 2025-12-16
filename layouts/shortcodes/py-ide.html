@@ -1,43 +1,72 @@
+<!-- 
+  PyScript Mini IDE (Base64 Anti-Minify Version)
+  特性：使用 Base64 传输代码，完美防止 HTML 压缩导致的缩进丢失问题
+-->
+
 <style>
-  /* 样式保持不变，为了版面整洁这里省略，请保留你之前的 CSS 样式即可 */
-  /* 如果不小心删了，可以用下面这个简版 */
-  .py-ide-wrapper { margin: 2rem 0; border-radius: 6px; overflow: hidden; background: #2d2d2d; border: 1px solid #444; }
+  /* 样式部分保持不变 */
+  .py-ide-wrapper { margin: 2rem 0; border-radius: 6px; overflow: hidden; background: #2d2d2d; box-shadow: 0 8px 16px rgba(0,0,0,0.3); border: 1px solid #444; }
   .py-ide-header { background: #383838; padding: 6px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
-  .py-title { font-family: sans-serif; font-size: 0.8rem; color: #aaa; font-weight: 600; }
-  .py-editor { width: 100%; min-height: 180px; padding: 15px; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.6; outline: none; background-color: #2d2d2d; white-space: pre !important; color: #f8f8f2; caret-color: #fff; }
-  .py-run-btn { background: #2e7d32; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-  .py-output-container { background: #1e1e1e; border-top: 1px solid #444; padding: 10px 15px; }
-  .py-output { font-family: monospace; font-size: 13px; color: #ddd; white-space: pre-wrap; }
+  .py-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 0.8rem; color: #aaa; font-weight: 600; letter-spacing: 0.5px; }
+  .py-editor { width: 100%; min-height: 180px; padding: 15px; font-family: 'Fira Code', 'Menlo', 'Consolas', monospace; font-size: 14px; line-height: 1.6; outline: none; resize: vertical; overflow: auto; background-color: #2d2d2d; white-space: pre !important; color: #f8f8f2; caret-color: #fff; }
+  .py-run-btn { background: #2e7d32; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; font-weight: bold; letter-spacing: 0.5px; transition: background 0.2s; }
+  .py-run-btn:hover { background: #388e3c; }
+  .py-output-container { background: #1e1e1e; border-top: 1px solid #444; padding: 10px 15px; min-height: 40px; }
+  .py-output-label { display: block; font-size: 0.7rem; color: #555; margin-bottom: 4px; font-weight: bold; }
+  .py-output { font-family: 'Consolas', monospace; font-size: 13px; color: #ddd; white-space: pre-wrap; word-break: break-all; }
 </style>
 
+<!-- 清洗 Markdown 标记 -->
 {{ $rawContent := .Inner }}
 {{ $cleanContent := $rawContent | replaceRE "^(?s)\\s*```[a-zA-Z0-9]*\\s+" "" }}
 {{ $cleanContent := $cleanContent | replaceRE "\\s*```\\s*$" "" }}
 
+<!-- 关键修改：将代码转为 Base64 字符串 -->
+{{ $b64Code := $cleanContent | base64Encode }}
+
 <div class="py-ide-wrapper">
     <div class="py-ide-header">
         <span class="py-title">PYTHON PLAYGROUND</span>
-        <button id="btn-{{ .Ordinal }}" class="py-run-btn" py-click="run_code_{{ .Ordinal }}">▶ RUN</button>
+        <button id="btn-{{ .Ordinal }}" class="py-run-btn" py-click="run_code_{{ .Ordinal }}">
+            ▶ RUN
+        </button>
     </div>
-    <div id="editor-{{ .Ordinal }}" class="py-editor language-python">{{ $cleanContent | safeHTML }}</div>
+
+    <!-- 关键修改：div 初始为空，代码存储在 data-code 属性里 -->
+    <div id="editor-{{ .Ordinal }}" class="py-editor language-python" data-code="{{ $b64Code }}"></div>
+
     <div class="py-output-container">
+        <span class="py-output-label">OUTPUT</span>
         <div id="output-{{ .Ordinal }}" class="py-output"></div>
     </div>
 </div>
 
-<!-- 1. 编辑器逻辑 -->
+<!-- 1. 编辑器逻辑 (Module) -->
 <script type="module">
-    // 【修复】换用 esm.sh 源，这个对 ES Module 支持最好，不容易报 404
     import { CodeJar } from 'https://esm.sh/codejar@4.2.0';
 
     const editorEl = document.getElementById("editor-{{ .Ordinal }}");
 
+    // 【关键修改】解码 Base64 并填充到编辑器
+    // 使用 decodeURIComponent(escape(atob(...))) 是为了正确处理中文乱码
+    const rawB64 = editorEl.getAttribute("data-code");
+    try {
+        const decodedCode = decodeURIComponent(escape(window.atob(rawB64)));
+        editorEl.textContent = decodedCode;
+    } catch (e) {
+        console.error("Base64 decode failed", e);
+    }
+
+    // 高亮逻辑
     const highlight = (editor) => {
-        // 加强判断，防止 Prism 没加载完报错
         if (window.Prism && window.Prism.languages && window.Prism.languages.python) {
             try {
-                editor.innerHTML = Prism.highlight(editor.textContent, window.Prism.languages.python, 'python');
-            } catch (e) { console.error(e); }
+                editor.innerHTML = Prism.highlight(
+                    editor.textContent, 
+                    window.Prism.languages.python, 
+                    'python'
+                );
+            } catch (e) { console.error("Highlight error:", e); }
         }
     };
 
@@ -45,7 +74,7 @@
     highlight(editorEl);
 </script>
 
-<!-- 2. 运行逻辑 -->
+<!-- 2. 运行逻辑 (PyScript) -->
 <script type="py">
     from pyscript import window, document
     import sys
@@ -54,16 +83,17 @@
     def run_code_{{ .Ordinal }}(event):
         editor_div = document.getElementById("editor-{{ .Ordinal }}")
         output_box = document.getElementById("output-{{ .Ordinal }}")
+        
         user_code = editor_div.textContent
         
         stdout_capture = io.StringIO()
         sys.stdout = stdout_capture
         sys.stderr = stdout_capture
+
         output_box.innerText = "Running..."
         
         try:
-            <!-- local_scope = {}
-            exec(user_code, {}, local_scope) -->
+            # 使用同一个 global scope 解决 import 问题
             global_scope = {}
             exec(user_code, global_scope, global_scope)
         except Exception as e:
@@ -71,6 +101,9 @@
         finally:
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
+            
             result = stdout_capture.getvalue()
-            output_box.innerText = result if result else "[Success]"
+            if not result:
+                result = "[Success]"
+            output_box.innerText = result
 </script>
