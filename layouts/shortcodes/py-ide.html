@@ -1,0 +1,76 @@
+<style>
+  /* 样式保持不变，为了版面整洁这里省略，请保留你之前的 CSS 样式即可 */
+  /* 如果不小心删了，可以用下面这个简版 */
+  .py-ide-wrapper { margin: 2rem 0; border-radius: 6px; overflow: hidden; background: #2d2d2d; border: 1px solid #444; }
+  .py-ide-header { background: #383838; padding: 6px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
+  .py-title { font-family: sans-serif; font-size: 0.8rem; color: #aaa; font-weight: 600; }
+  .py-editor { width: 100%; min-height: 180px; padding: 15px; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.6; outline: none; background-color: #2d2d2d; white-space: pre !important; color: #f8f8f2; caret-color: #fff; }
+  .py-run-btn { background: #2e7d32; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+  .py-output-container { background: #1e1e1e; border-top: 1px solid #444; padding: 10px 15px; }
+  .py-output { font-family: monospace; font-size: 13px; color: #ddd; white-space: pre-wrap; }
+</style>
+
+{{ $rawContent := .Inner }}
+{{ $cleanContent := $rawContent | replaceRE "^(?s)\\s*```[a-zA-Z0-9]*\\s+" "" }}
+{{ $cleanContent := $cleanContent | replaceRE "\\s*```\\s*$" "" }}
+
+<div class="py-ide-wrapper">
+    <div class="py-ide-header">
+        <span class="py-title">PYTHON PLAYGROUND</span>
+        <button id="btn-{{ .Ordinal }}" class="py-run-btn" py-click="run_code_{{ .Ordinal }}">▶ RUN</button>
+    </div>
+    <div id="editor-{{ .Ordinal }}" class="py-editor language-python">{{ $cleanContent | safeHTML }}</div>
+    <div class="py-output-container">
+        <div id="output-{{ .Ordinal }}" class="py-output"></div>
+    </div>
+</div>
+
+<!-- 1. 编辑器逻辑 -->
+<script type="module">
+    // 【修复】换用 esm.sh 源，这个对 ES Module 支持最好，不容易报 404
+    import { CodeJar } from 'https://esm.sh/codejar@4.2.0';
+
+    const editorEl = document.getElementById("editor-{{ .Ordinal }}");
+
+    const highlight = (editor) => {
+        // 加强判断，防止 Prism 没加载完报错
+        if (window.Prism && window.Prism.languages && window.Prism.languages.python) {
+            try {
+                editor.innerHTML = Prism.highlight(editor.textContent, window.Prism.languages.python, 'python');
+            } catch (e) { console.error(e); }
+        }
+    };
+
+    const jar = CodeJar(editorEl, highlight);
+    highlight(editorEl);
+</script>
+
+<!-- 2. 运行逻辑 -->
+<script type="py">
+    from pyscript import window, document
+    import sys
+    import io
+
+    def run_code_{{ .Ordinal }}(event):
+        editor_div = document.getElementById("editor-{{ .Ordinal }}")
+        output_box = document.getElementById("output-{{ .Ordinal }}")
+        user_code = editor_div.textContent
+        
+        stdout_capture = io.StringIO()
+        sys.stdout = stdout_capture
+        sys.stderr = stdout_capture
+        output_box.innerText = "Running..."
+        
+        try:
+            <!-- local_scope = {}
+            exec(user_code, {}, local_scope) -->
+            global_scope = {}
+            exec(user_code, global_scope, global_scope)
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+            result = stdout_capture.getvalue()
+            output_box.innerText = result if result else "[Success]"
+</script>

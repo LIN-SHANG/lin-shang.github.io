@@ -1,0 +1,13 @@
+<!-- 这是一个可交互的 Python 编辑器/解释器 -->
+<!-- <div style="margin: 1.5rem 0;">
+    <script type="py" terminal worker>
+        {{ .Inner | safeHTML }}
+    </script>
+</div> -->
+
+<div style="margin: 1.5rem 0;">
+    <!-- 注意这里改成了 mpy (MicroPython) -->
+    <script type="py" terminal>
+        {{ .Inner | safeHTML }}
+    </script>
+</div>

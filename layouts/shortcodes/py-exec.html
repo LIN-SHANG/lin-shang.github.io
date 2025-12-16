@@ -1,0 +1,17 @@
+<!-- 这个框里的代码会自动运行，并将结果输出到指定的 div -->
+<div>
+    <p><strong>Code:</strong></p>
+    <pre><code>{{ .Inner }}</code></pre>
+    <p><strong>Output:</strong></p>
+    <div id="output-{{ .Ordinal }}" style="border: 1px solid #ddd; padding: 10px; background: #f9f9f9;"></div>
+    
+    <script type="py" worker>
+        from pyscript import display
+        import sys
+        
+        # 捕获代码逻辑
+        {{ .Inner | safeHTML }}
+        
+        # 这里只是演示，PyScript 新版通常自动处理输出，或者你需要显式调用 display()
+    </script>
+</div>

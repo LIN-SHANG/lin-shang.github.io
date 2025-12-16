@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "courses/Stanford-CS-336/Pipeline_of_CS336/index.md",
+                "file": "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
                 "mode": "source",
                 "source": false
               },
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "courses/Stanford-CS-336/Pipeline_of_CS336/index.md",
+                "file": "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -113,7 +113,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "courses/Stanford-CS-336/Pipeline_of_CS336/index.md",
+                "file": "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -156,7 +156,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "courses/Stanford-CS-336/Pipeline_of_CS336/index.md",
+                "file": "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -183,11 +183,15 @@
       "bases:创建新数据库": false
     }
   },
-  "active": "b438fdf15f693726",
+  "active": "198125fd37950123",
   "lastOpenFiles": [
     "courses/Stanford-CS-336/_index.md",
     "courses/Stanford-CS-336/Pipeline_of_CS336/index.md",
     "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
+    "courses/Stanford-CS-336/scaling_params_table.png",
+    "courses/Stanford-CS-336/hugo_0.152.2_darwin-universal",
+    "courses/Stanford-CS-336/hugo_0.152.2_darwin-universal.tar.gz",
+    "courses/Stanford-CS-336/未确认 414287.crdownload",
     "courses/Stanford-CS-336/Pipeline_of_CS336",
     "courses/Stanford-CS-336/Pipeline_of_CS336/data_framework.png",
     "courses/Stanford-CS-336/data_frameworkpng",
@@ -201,14 +205,10 @@
     "courses/Stanford-CS-336/未确认 843895.crdownload",
     "courses/Stanford-CS-336/Pipeline_of_CS336/A100-architechture.png",
     "courses/Stanford-CS-336/A100-architechture",
-    "courses/Stanford-CS-336/未确认 942623.crdownload",
     "courses/Stanford-CS-336/Pipeline_of_CS336/memory-compute-framework.png",
     "Vaswani+ 2017.md",
     "courses/Stanford-CS-336/Pipeline_of_CS336/transformer-architecture.png",
-    "courses/Stanford-CS-336/未确认 329466.crdownload",
     "courses/Stanford-CS-336/Pipeline_of_CS336/tokenized-example.png",
-    "courses/Stanford-CS-336/Pipeline_of_CS336/design-decisions.png",
-    "未命名.base",
     "courses/hugo-blox/guide/formatting/toggle.md",
     "courses/Stanford-CS-336/lecture_01/_index.md",
     "courses/Stanford-CS-336/index.md",

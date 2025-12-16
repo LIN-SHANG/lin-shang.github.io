@@ -1,7 +1,41 @@
 <!-- 
   文件位置: layouts/_partials/hooks/head-end/custom_style.html
-  作用: 仅在 type: docs 的页面（课程详情页）强制变宽，不影响首页和列表页
+  第一段作用: 全局生效 (去除反引号)
+  第二段作用: 仅在 type: docs 的页面（课程详情页）强制变宽，不影响首页和列表页
 -->
+
+<style>
+  :not(pre) > code::before,
+  :not(pre) > code::after,
+  span.code::before,
+  span.code::after {
+    content: none !important;
+  }
+  
+  /* 可选：给去掉了引号的代码一点点左右间距，防止粘连文字 */
+  :not(pre) > code {
+    padding: 0.1rem 0.2rem !important;
+  }
+</style>
+
+
+{{ if .Params.python }}
+  <!-- 1. COI Service Worker (本地文件) -->
+  <script src="/js/coi-serviceworker.js"></script>
+
+  <!-- 2. PyScript (官方源) -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+  <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+  <!-- 3. PrismJS (换用 jsDelivr CDN，更稳定) -->
+  <link href="https://fastly.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  
+  <!-- 核心库：不加 defer/async，强制阻塞加载，确保后续插件能用到 -->
+  <script src="https://fastly.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <!-- Python 插件：依赖核心库 -->
+  <script src="https://fastly.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+{{ end }}
+
 
 {{ if eq .Type "docs" }}
 <style>
