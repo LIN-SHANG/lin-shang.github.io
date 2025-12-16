@@ -21,7 +21,8 @@
 
 {{ if .Params.python }}
   <!-- 1. COI Service Worker (本地文件) -->
-  <script src="/js/coi-serviceworker.js"></script>
+  <!-- <script src="/js/coi-serviceworker.js"></script> -->
+  <script src="{{ "js/coi-serviceworker.js" | relURL }}"></script>
 
   <!-- 2. PyScript (官方源) -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
