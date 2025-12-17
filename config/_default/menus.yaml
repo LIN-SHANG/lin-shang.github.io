@@ -24,3 +24,7 @@ main:
     identifier: udBI4x8i
     url: courses/
     weight: 50
+  - name: Blog
+    identifier: blog
+    url: /blog/
+    weight: 60

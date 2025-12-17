@@ -3,8 +3,10 @@ title: CS336 lecture-01 - tokenizer
 linktitle: Section-01_lecture-01
 summary: 基于 CS336 课程讲义，深入探讨了大模型中的分词（Tokenization）技术。从最朴素的字符级、字节级分词，一直讲解到现代 LLM 标配的 BPE（Byte Pair Encoding）算法及其实现。
 date: 2025-12-16
+
 python: true
 type: docs
+
 content_meta:
   content_type: Course
   difficulty: M.S. level and upper
@@ -210,6 +212,9 @@ print(f"Token ID: {indices}")
 
 
 ### 2.4 可交互 python 环境
+
+该交互环境仅为测试代码和想法使用，并未安装很多依赖包(e.g. torch)，建议不要执行很重的代码！
+
 {{< py-ide >}}
 ```python
 # 这是一个可编辑的 Python 环境

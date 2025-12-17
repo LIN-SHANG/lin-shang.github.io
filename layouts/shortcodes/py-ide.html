@@ -1,109 +1,392 @@
 <!-- 
-  PyScript Mini IDE (Base64 Anti-Minify Version)
-  特性：使用 Base64 传输代码，完美防止 HTML 压缩导致的缩进丢失问题
+  PyScript IDE (V7.1 - DOM-Ready Initialization)
+  修复：解决因 JS 执行时机过早导致 IDE 无法加载的致命问题 (Race Condition)
 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-vsc-dark-plus.min.css" rel="stylesheet" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 
 <style>
-  /* 样式部分保持不变 */
-  .py-ide-wrapper { margin: 2rem 0; border-radius: 6px; overflow: hidden; background: #2d2d2d; box-shadow: 0 8px 16px rgba(0,0,0,0.3); border: 1px solid #444; }
-  .py-ide-header { background: #383838; padding: 6px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
-  .py-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 0.8rem; color: #aaa; font-weight: 600; letter-spacing: 0.5px; }
-  .py-editor { width: 100%; min-height: 180px; padding: 15px; font-family: 'Fira Code', 'Menlo', 'Consolas', monospace; font-size: 14px; line-height: 1.6; outline: none; resize: vertical; overflow: auto; background-color: #2d2d2d; white-space: pre !important; color: #f8f8f2; caret-color: #fff; }
-  .py-run-btn { background: #2e7d32; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 0.75rem; font-weight: bold; letter-spacing: 0.5px; transition: background 0.2s; }
+  /* === 样式保持不变 === */
+  .py-ide-container { display: flex; flex-wrap: wrap; margin: 2rem 0; background: #1e1e1e; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #333; overflow: hidden; font-family: -apple-system, sans-serif; }
+  .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid #333; }
+  .py-sidebar-col { width: 260px; background: #252526; display: flex; flex-direction: column; font-size: 13px; border-left: 1px solid #333; }
+  .py-header { background: #333333; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #252526; height: 38px; font-size: 12px; font-weight: 600; color: #bbb; }
+  .py-header-title { display: flex; align-items: center; gap: 10px; }
+  .py-shortcut-hint { font-size: 10px; color: #666; font-weight: normal; border: 1px solid #444; padding: 1px 4px; border-radius: 3px;}
+  .py-btn-group { display: flex; gap: 6px; }
+  /* 修改 .py-editor 样式 */
+  .py-editor { 
+  min-height: 250px; 
+  padding: 15px; 
+  /* 字体设置很重要，必须等宽 */
+  font-family: 'Fira Code', 'Menlo', 'Consolas', monospace; 
+  font-size: 14px !important; 
+  line-height: 1.5 !important; 
+  background-color: #1e1e1e; 
+  color: #d4d4d4; 
+  outline: none; 
+  overflow: auto; 
+  border-radius: 0 0 6px 6px;
+  /* 关键：设置光标颜色，否则在某些浏览器可能看不见 */
+  caret-color: #fff; 
+  /* 保持空白符格式 */
+  white-space: pre !important;
+}
+
+/* 覆盖 Prism 的默认背景，使其透明以融合你的 IDE 背景 */
+pre[class*="language-"], code[class*="language-"] {
+  text-shadow: none !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+  .py-icon-btn { border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
+  .py-run-btn { background: #2e7d32; color: #fff; }
   .py-run-btn:hover { background: #388e3c; }
-  .py-output-container { background: #1e1e1e; border-top: 1px solid #444; padding: 10px 15px; min-height: 40px; }
-  .py-output-label { display: block; font-size: 0.7rem; color: #555; margin-bottom: 4px; font-weight: bold; }
-  .py-output { font-family: 'Consolas', monospace; font-size: 13px; color: #ddd; white-space: pre-wrap; word-break: break-all; }
+  .py-run-btn:disabled { background: #444; color: #888; cursor: wait; }
+  .py-reset-btn { background: transparent; color: #aaa; border: 1px solid #444; }
+  .py-reset-btn:hover { background: #444; color: #fff; }
+  .py-output { background: #1e1e1e; color: #cccccc; padding: 10px; font-family: 'Fira Code', 'Menlo', monospace; font-size: 14px; white-space: pre-wrap; border-top: 1px solid #333; max-height: 200px; overflow-y: auto; border-left: 3px solid #007acc; }
+  .py-plot-container { background: white; padding: 15px; text-align: center; border-top: 1px solid #333; display: none; }
+  .py-tree-container { flex: 1; overflow-y: auto; padding: 8px; font-family: 'Fira Code', monospace; }
+  .t-node { margin-left: 14px; line-height: 1.6; }
+  .t-key { color: #9cdcfe; margin-right: 5px; cursor: pointer; }
+  .t-key:hover { color: #4ec9b0; }
+  .t-val { color: #ce9178; }
+  .t-type { color: #569cd6; opacity: 0.7; font-size: 0.9em; margin-left: 6px; font-style: italic;}
+  .t-arrow { display: inline-block; width: 10px; color: #888; cursor: pointer; transition: transform 0.1s; font-size: 10px; margin-left: -12px; margin-right: 2px;}
+  .t-arrow.open { transform: rotate(90deg); }
+  .t-collapsible { display: none; }
+  .t-collapsible.open { display: block; }
+  .t-empty { color: #666; font-style: italic; margin-left: 14px;}
 </style>
 
-<!-- 清洗 Markdown 标记 -->
 {{ $rawContent := .Inner }}
 {{ $cleanContent := $rawContent | replaceRE "^(?s)\\s*```[a-zA-Z0-9]*\\s+" "" }}
 {{ $cleanContent := $cleanContent | replaceRE "\\s*```\\s*$" "" }}
-
-<!-- 关键修改：将代码转为 Base64 字符串 -->
 {{ $b64Code := $cleanContent | base64Encode }}
 
-<div class="py-ide-wrapper">
-    <div class="py-ide-header">
-        <span class="py-title">PYTHON PLAYGROUND</span>
-        <button id="btn-{{ .Ordinal }}" class="py-run-btn" py-click="run_code_{{ .Ordinal }}">
-            ▶ RUN
-        </button>
+<div class="py-ide-container">
+    <div class="py-main-col">
+        <div class="py-header">
+            <div class="py-header-title">
+                <span>TERMINAL</span>
+                <span class="py-shortcut-hint">Ctrl + Enter to Run</span>
+            </div>
+            <div class="py-btn-group">
+                <button id="reset-{{ .Ordinal }}" class="py-icon-btn py-reset-btn" py-click="reset_code_{{ .Ordinal }}">↺ RESET</button>
+                <button id="btn-{{ .Ordinal }}" class="py-icon-btn py-run-btn" py-click="run_code_{{ .Ordinal }}">▶ RUN</button>
+            </div>
+        </div>
+        
+        <div id="editor-{{ .Ordinal }}" class="py-editor language-python" data-code="{{ $b64Code }}"></div>
+        <div class="py-output" id="output-{{ .Ordinal }}">> Initializing Python...</div>
+        
+        <div id="plot-header-{{ .Ordinal }}" class="py-header" style="display: none; justify-content: flex-end; border-top: 1px solid #333;">
+            <button id="copy-png-btn-{{ .Ordinal }}" class="py-icon-btn py-reset-btn">复制为 PNG</button>
+        </div>
+        <div class="py-plot-container" id="plot-{{ .Ordinal }}"></div>
     </div>
 
-    <!-- 关键修改：div 初始为空，代码存储在 data-code 属性里 -->
-    <div id="editor-{{ .Ordinal }}" class="py-editor language-python" data-code="{{ $b64Code }}"></div>
-
-    <div class="py-output-container">
-        <span class="py-output-label">OUTPUT</span>
-        <div id="output-{{ .Ordinal }}" class="py-output"></div>
+    <div class="py-sidebar-col">
+        <div class="py-header">VARIABLES</div>
+        <div id="tree-{{ .Ordinal }}" class="py-tree-container"></div>
     </div>
 </div>
 
-<!-- 1. 编辑器逻辑 (Module) -->
 <script type="module">
-    import { CodeJar } from 'https://esm.sh/codejar@4.2.0';
+    // 动态引入 CodeJar (从 CDN 加载 ES Module)
+    import { CodeJar } from 'https://cdn.jsdelivr.net/npm/codejar@3.7.0/codejar.min.js';
 
-    const editorEl = document.getElementById("editor-{{ .Ordinal }}");
+    document.addEventListener("DOMContentLoaded", () => {
+        const editorEl = document.getElementById("editor-{{ .Ordinal }}");
+        const copyBtn = document.getElementById("copy-png-btn-{{ .Ordinal }}");
 
-    // 【关键修改】解码 Base64 并填充到编辑器
-    // 使用 decodeURIComponent(escape(atob(...))) 是为了正确处理中文乱码
-    const rawB64 = editorEl.getAttribute("data-code");
-    try {
-        const decodedCode = decodeURIComponent(escape(window.atob(rawB64)));
-        editorEl.textContent = decodedCode;
-    } catch (e) {
-        console.error("Base64 decode failed", e);
-    }
+        if (!editorEl) {
+            console.error("Py-IDE Error: Editor element not found.");
+            return;
+        }
 
-    // 高亮逻辑
-    const highlight = (editor) => {
-        if (window.Prism && window.Prism.languages && window.Prism.languages.python) {
-            try {
+        // --- 核心修改：定义高亮函数 ---
+        const highlight = (editor) => {
+            // 使用 Prism 对代码进行高亮处理
+            if (window.Prism) {
+                // 将代码文本转换为高亮后的 HTML
                 editor.innerHTML = Prism.highlight(
                     editor.textContent, 
-                    window.Prism.languages.python, 
+                    Prism.languages.python, 
                     'python'
                 );
-            } catch (e) { console.error("Highlight error:", e); }
+            }
+        };
+
+        // --- 核心修改：初始化 CodeJar ---
+        // CodeJar 会接管 contentEditable 的输入事件和光标管理
+        const jar = CodeJar(editorEl, highlight, {
+            tab: '    ', //按下 Tab 键插入 4 个空格
+        });
+
+        // --- 解码并填充初始代码 ---
+        try {
+            const rawB64 = editorEl.getAttribute("data-code");
+            const decodedCode = decodeURIComponent(escape(window.atob(rawB64)));
+            
+            // 使用 CodeJar 的 updateCode 方法来设置内容，它会自动触发高亮
+            jar.updateCode(decodedCode);
+            
+            // 确保在 PyScript 准备好之前代码已经显示
+            // (CodeJar 会自动处理 contentEditable="true")
+        } catch (e) {
+            console.error("Py-IDE Error: Failed to decode code.", e);
+            editorEl.textContent = "# Error: Could not load code.";
         }
-    };
 
-    const jar = CodeJar(editorEl, highlight);
-    highlight(editorEl);
+        // --- 绑定快捷键 (逻辑保持不变) ---
+        editorEl.addEventListener('keydown', (e) => {
+            // 阻止 Ctrl+S 保存网页
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+            }
+            // Ctrl + Enter 运行
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                const runBtn = document.getElementById("btn-{{ .Ordinal }}");
+                if (runBtn && !runBtn.disabled) runBtn.click();
+            }
+        });
+
+        // --- 变量树和截图功能 (保持不变) ---
+        window.renderJsonTree = (containerId, jsonString) => {
+            // ... (此处保持你原有的 renderJsonTree 代码不变) ...
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = "";
+            let data;
+            try { data = JSON.parse(jsonString); } catch (e) { return; }
+            const createNode = (key, value, type, children) => {
+                const div = document.createElement("div");
+                div.className = "t-node";
+                if (children !== null) {
+                    const arrow = document.createElement("span");
+                    arrow.className = "t-arrow";
+                    arrow.innerText = "▶";
+                    const label = document.createElement("span");
+                    label.innerHTML = `<span class="t-key">${key}:</span><span class="t-type">${type}</span>`;
+                    const childContainer = document.createElement("div");
+                    childContainer.className = "t-collapsible";
+                    const toggle = (e) => {
+                        e.stopPropagation();
+                        childContainer.classList.toggle("open");
+                        arrow.classList.toggle("open");
+                        arrow.innerText = arrow.classList.contains("open") ? "▼" : "▶";
+                    };
+                    arrow.onclick = toggle;
+                    label.onclick = toggle;
+                    div.appendChild(arrow);
+                    div.appendChild(label);
+                    div.appendChild(childContainer);
+                    if (Object.keys(children).length === 0) {
+                        childContainer.innerHTML = '<div class="t-empty">(empty)</div>';
+                    } else {
+                        for (const [k, v] of Object.entries(children)) {
+                            childContainer.appendChild(createNode(k, v.val, v.type, v.children));
+                        }
+                    }
+                } else {
+                    div.innerHTML = `<span class="t-key" style="cursor:default">${key}:</span><span class="t-val">${value}</span>`;
+                }
+                return div;
+            };
+            if (Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="t-empty" style="margin-top:10px">No user variables</div>';
+            } else {
+                for (const [k, v] of Object.entries(data)) {
+                    container.appendChild(createNode(k, v.val, v.type, v.children));
+                }
+            }
+        };
+
+        const copyPlotAsPng = (btn) => {
+             // ... (此处保持你原有的 copyPlotAsPng 代码不变) ...
+             const plotContainer = document.getElementById("plot-{{ .Ordinal }}");
+             // ...略...
+             // 这里的代码太长，逻辑不用动，直接复制你原来的即可
+             const svgElement = plotContainer ? plotContainer.querySelector('svg') : null;
+             if (!svgElement) { alert("错误：找不到需要复制的图像。"); return; }
+             const canvas = document.createElement('canvas');
+             const ctx = canvas.getContext('2d');
+             const scale = 2; 
+             const viewbox = svgElement.viewBox.baseVal;
+             canvas.width = viewbox.width * scale;
+             canvas.height = viewbox.height * scale;
+             const img = new Image();
+             const svgData = new XMLSerializer().serializeToString(svgElement);
+             const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+             img.onload = () => {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob((blob) => {
+                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+                        .then(() => {
+                            const originalText = btn.innerText;
+                            btn.innerText = "已复制!";
+                            setTimeout(() => { btn.innerText = originalText; }, 2000);
+                        })
+                        .catch(err => { console.error('复制失败', err); alert('复制失败'); });
+                }, 'image/png');
+             };
+             img.src = svgUrl;
+        };
+
+        if (copyBtn) copyBtn.onclick = (e) => copyPlotAsPng(e.target);
+    });
 </script>
+<!-- Python 代码部分保持不变 -->
+<script type="py" config='{"packages": ["micropip"]}'>
+    from pyscript import window, document, HTML
+    import sys, io, micropip, asyncio, html, types, json, base64, os
 
-<!-- 2. 运行逻辑 (PyScript) -->
-<script type="py">
-    from pyscript import window, document
-    import sys
-    import io
+    class DOMStream:
+        def __init__(self, element_id): self.element_id = element_id
+        def write(self, text):
+            el = document.getElementById(self.element_id)
+            if el:
+                el.innerText += text
+                el.scrollTop = el.scrollHeight
+        def flush(self): pass
 
-    def run_code_{{ .Ordinal }}(event):
-        editor_div = document.getElementById("editor-{{ .Ordinal }}")
-        output_box = document.getElementById("output-{{ .Ordinal }}")
-        
-        user_code = editor_div.textContent
-        
-        stdout_capture = io.StringIO()
-        sys.stdout = stdout_capture
-        sys.stderr = stdout_capture
+    if 'kernels' not in globals(): kernels = {}
+    if {{ .Ordinal }} not in kernels: kernels[{{ .Ordinal }}] = {}
 
-        output_box.innerText = "Running..."
+    async def init_system_{{ .Ordinal }}():
+        output_id = "output-{{ .Ordinal }}"
+        stream = DOMStream(output_id)
+        stream.write("> Core loaded.\n")
+        stream.write("> Downloading libraries & resources...\n")
         
         try:
-            # 使用同一个 global scope 解决 import 问题
-            global_scope = {}
-            exec(user_code, global_scope, global_scope)
-        except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
+            await micropip.install(["numpy", "matplotlib"])
+            import matplotlib
+            matplotlib.use("Agg") 
+            import matplotlib.pyplot as plt
+            import matplotlib.font_manager as fm
+            from pyodide.http import pyfetch
+
+            font_url = "{{ "font/LXGWWenKaiLite-Light.ttf" | relURL }}" 
+            font_path = "LXGWWenKaiLite-Light.ttf" 
+            stream.write(f"> Fetching font from: {font_url}\n")
             
-            result = stdout_capture.getvalue()
-            if not result:
-                result = "[Success]"
-            output_box.innerText = result
+            response = await pyfetch(font_url)
+            if response.status == 200:
+                with open(font_path, "wb") as f:
+                    f.write(await response.bytes())
+                fm.fontManager.addfont(font_path)
+                plt.rcParams['font.family'] = ['LXGW WenKai Lite'] 
+                plt.rcParams['axes.unicode_minus'] = False 
+                stream.write("> Chinese font configured.\n")
+            else:
+                stream.write(f"> Warning: Failed to fetch font (Status {response.status}).\n")
+            stream.write("> System Ready. 🚀\n")
+        except Exception as e:
+            stream.write(f"> Init Error: {e}\n")
+
+    asyncio.ensure_future(init_system_{{ .Ordinal }}())
+
+    def get_scope_tree(scope):
+        tree_data = {}
+        def safe_str(v):
+            try: s = str(v)
+            except: s = "<error>"
+            return html.escape(s[:50] + "..." if len(s) > 50 else s)
+        for k, v in scope.items():
+            if k.startswith("_") or k in ['open', 'exit', 'quit', 'In', 'Out', 'get_ipython', 'show_plot', 'matplotlib', 'plt', 'micropip', 'fm', 'pyfetch', 'os']: continue
+            if isinstance(v, (types.ModuleType, types.FunctionType, type)): continue
+            val_type = type(v).__name__
+            children = None
+            display_val = safe_str(v)
+            if isinstance(v, dict):
+                children = {}
+                display_val = f"dict[{len(v)}]"
+                for sk, sv in list(v.items())[:20]:
+                    children[str(sk)] = {"val": safe_str(sv), "type": type(sv).__name__, "children": None}
+            elif isinstance(v, (list, tuple)):
+                children = {}
+                display_val = f"{val_type}[{len(v)}]"
+                for i, sv in enumerate(v[:20]):
+                    children[str(i)] = {"val": safe_str(sv), "type": type(sv).__name__, "children": None}
+            tree_data[k] = {"val": display_val, "type": val_type, "children": children}
+        return json.dumps(tree_data)
+
+    def _show_plot_helper():
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            print("Matplotlib not ready yet.")
+            return
+        plot_div = document.getElementById("plot-{{ .Ordinal }}")
+        plot_header = document.getElementById("plot-header-{{ .Ordinal }}")
+        buf = io.StringIO()
+        try:
+            plt.savefig(buf, format='svg', bbox_inches='tight')
+            buf.seek(0)
+            svg_string = buf.getvalue()
+            plot_div.innerHTML = svg_string
+            plot_div.style.display = "block"
+            plot_header.style.display = "flex"
+            print("System: SVG Plot generated.")
+        except Exception as e:
+            print(f"System Error: Plotting failed - {e}")
+        finally:
+            plt.clf()
+            buf.close()
+
+    def reset_code_{{ .Ordinal }}(event):
+        kernels[{{ .Ordinal }}] = {}
+        kernels[{{ .Ordinal }}]["show_plot"] = _show_plot_helper
+        document.getElementById("output-{{ .Ordinal }}").innerText = "> Environment reset."
+        window.renderJsonTree("tree-{{ .Ordinal }}", "{}")
+        document.getElementById("plot-{{ .Ordinal }}").style.display = "none"
+        document.getElementById("plot-header-{{ .Ordinal }}").style.display = "none"
+
+    async def run_code_{{ .Ordinal }}(event):
+        output_id = "output-{{ .Ordinal }}"
+        tree_id = "tree-{{ .Ordinal }}"
+        btn = document.getElementById("btn-{{ .Ordinal }}")
+        output_el = document.getElementById(output_id)
+        btn.disabled = True
+        btn.innerText = "Running..."
+        output_el.innerText = "" 
+        user_selection = window.getSelection().toString()
+        full_code = document.getElementById("editor-{{ .Ordinal }}").textContent
+        code_to_run = user_selection if user_selection.strip() else full_code
+        if user_selection.strip(): output_el.innerText = "> Running selection...\n"
+        current_scope = kernels[{{ .Ordinal }}]
+        if "show_plot" not in current_scope: current_scope["show_plot"] = _show_plot_helper
+        first_line = code_to_run.strip().split('\n')[0]
+        if first_line.startswith("# install:"):
+            pkgs = [p.strip() for p in first_line.replace("# install:", "").split(",") if p.strip()]
+            if pkgs:
+                output_el.innerText += f"> Installing: {', '.join(pkgs)}...\n"
+                try: await micropip.install(pkgs)
+                except Exception as e: output_el.innerText += f"Install failed: {e}\n"
+        stream = DOMStream(output_id)
+        original_stdout, original_stderr = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = stream, stream
+        try:
+            exec(code_to_run, current_scope, current_scope)
+        except Exception as e:
+            print(f"Runtime Error: {e}")
+        finally:
+            sys.stdout, sys.stderr = original_stdout, original_stderr
+            try:
+                tree_json = get_scope_tree(current_scope)
+                window.renderJsonTree(tree_id, tree_json)
+            except Exception as e: print(f"Tree Error: {e}")
+            btn.disabled = False
+            btn.innerText = "▶ RUN"
 </script>

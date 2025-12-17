@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
+                "file": "blog/interactive_python_demo/index.md",
                 "mode": "source",
                 "source": false
               },
@@ -78,7 +78,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 205.5,
+    "collapsed": true
   },
   "right": {
     "id": "65eaf8571bc1143e",
@@ -185,9 +186,15 @@
   },
   "active": "198125fd37950123",
   "lastOpenFiles": [
+    "courses/Stanford-CS-336/LXGWWenKaiLite-Light.ttf",
+    "courses/Stanford-CS-336/未确认 170779.crdownload",
+    "courses/Stanford-CS-336/SimHei.ttf",
+    "courses/Stanford-CS-336/未确认 534964.crdownload",
+    "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
+    "blog/interactive_python_demo/index.md",
+    "blog/interactive_python_demo",
     "courses/Stanford-CS-336/_index.md",
     "courses/Stanford-CS-336/Pipeline_of_CS336/index.md",
-    "courses/Stanford-CS-336/Section-01_lecture_01/index.md",
     "courses/Stanford-CS-336/scaling_params_table.png",
     "courses/Stanford-CS-336/hugo_0.152.2_darwin-universal",
     "courses/Stanford-CS-336/hugo_0.152.2_darwin-universal.tar.gz",
@@ -199,12 +206,8 @@
     "courses/Stanford-CS-336/Pipeline_of_CS336/chinchilla-isoflop.png",
     "courses/Stanford-CS-336/Pipeline_of_CS336/prefill-decode.png",
     "courses/Stanford-CS-336/Pipeline_of_CS336/parallelism_framework.png",
-    "courses/Stanford-CS-336/parallelism_framework",
-    "courses/Stanford-CS-336/未确认 885955.crdownload",
     "courses/Stanford-CS-336/Pipeline_of_CS336/analogy_gpu_process.png",
-    "courses/Stanford-CS-336/未确认 843895.crdownload",
     "courses/Stanford-CS-336/Pipeline_of_CS336/A100-architechture.png",
-    "courses/Stanford-CS-336/A100-architechture",
     "courses/Stanford-CS-336/Pipeline_of_CS336/memory-compute-framework.png",
     "Vaswani+ 2017.md",
     "courses/Stanford-CS-336/Pipeline_of_CS336/transformer-architecture.png",
