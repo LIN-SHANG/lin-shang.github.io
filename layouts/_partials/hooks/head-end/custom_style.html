@@ -20,21 +20,137 @@
 
 
 {{ if .Params.python }}
-  <!-- 1. COI Service Worker (本地文件) -->
-  <!-- <script src="/js/coi-serviceworker.js"></script> -->
-  <script src="{{ "js/coi-serviceworker.js" | relURL }}"></script>
+  <!-- 1. COI Service Worker -->
+  <script src='{{ "js/coi-serviceworker.js" | relURL }}'></script>
 
-  <!-- 2. PyScript (官方源) -->
+  <!-- 2. PyScript 核心 -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
   <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
-  <!-- 3. PrismJS (换用 jsDelivr CDN，更稳定) -->
-  <link href="https://fastly.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-  
-  <!-- 核心库：不加 defer/async，强制阻塞加载，确保后续插件能用到 -->
-  <script src="https://fastly.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-  <!-- Python 插件：依赖核心库 -->
-  <script src="https://fastly.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <!-- 3. PrismJS 核心 (无 CSS) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+  <!-- 4. 动态主题系统 (修复版) -->
+  <style>
+    /* 字体定义 */
+    @font-face {
+      font-family: 'LXGW WenKai Lite';
+      src: url('{{ "font/LXGWWenKaiLite-Light.ttf" | relURL }}') format('truetype');
+      font-weight: normal; font-style: normal; display: swap;
+    }
+    :root { 
+      --code-font-stack: 'Fira Code', 'Consolas', 'Menlo', 'LXGW WenKai Lite', monospace; 
+    }
+
+    /* === 1. 默认浅色模式 (Light Mode) === */
+    /* 定义在 :root (即 html) 上 */
+    :root {
+      --ide-bg: #ffffff;
+      --ide-border: #e0e0e0;
+      --ide-header-bg: #f3f3f3;
+      --ide-header-text: #616161;
+      --ide-fg: #3b3b3b;
+      --ide-cursor: #000000;
+      --ide-selection: #add6ff;
+      --ide-output-bg: #fdfdfd;
+      --ide-output-border: #007acc;
+
+      /* Light Token Colors */
+      --token-comment: #008000;
+      --token-keyword: #0000ff;
+      --token-string: #a31515;
+      --token-number: #098658;
+      --token-class: #267f99;
+      --token-function: #795e26;
+      --token-variable: #001080;
+      --token-operator: #333333;
+      --token-punctuation: #333333;
+      --token-boolean: #0000ff;
+    }
+
+    /* === 2. 深色模式 (Dark Mode) === */
+    /* 关键修正：直接在 html.dark 上重写变量，而不是找子元素 */
+    
+    html.dark, 
+    html[data-theme="dark"],
+    body.dark {
+      --ide-bg: #1e1e1e;
+      --ide-border: #333333;
+      --ide-header-bg: #252526;
+      --ide-header-text: #cccccc;
+      --ide-fg: #d4d4d4;
+      --ide-cursor: #ffffff;
+      --ide-selection: #264f78;
+      --ide-output-bg: #1e1e1e;
+      --ide-output-border: #007acc;
+
+      /* Dark Token Colors */
+      --token-comment: #6a9955;
+      --token-keyword: #569cd6;
+      --token-string: #ce9178;
+      --token-number: #b5cea8;
+      --token-class: #4ec9b0;
+      --token-function: #dcdcaa;
+      --token-variable: #9cdcfe;
+      --token-operator: #d4d4d4;
+      --token-punctuation: #d4d4d4;
+      --token-boolean: #569cd6;
+    }
+
+    /* 系统级深色偏好 (作为补充) */
+    @media (prefers-color-scheme: dark) {
+      /* 当 html 没有被显式强制为 light 时生效 */
+      html:not(.light):not([data-theme="light"]) {
+        --ide-bg: #1e1e1e;
+        --ide-border: #333333;
+        --ide-header-bg: #252526;
+        --ide-header-text: #cccccc;
+        --ide-fg: #d4d4d4;
+        --ide-cursor: #ffffff;
+        --ide-selection: #264f78;
+        --ide-output-bg: #1e1e1e;
+        --ide-output-border: #007acc;
+
+        --token-comment: #6a9955; --token-keyword: #569cd6; --token-string: #ce9178; --token-number: #b5cea8; --token-class: #4ec9b0; --token-function: #dcdcaa; --token-variable: #9cdcfe; --token-operator: #d4d4d4; --token-punctuation: #d4d4d4; --token-boolean: #569cd6;
+      }
+    }
+
+    /* === PrismJS 通用设置 === */
+    code[class*="language-"], pre[class*="language-"] {
+      color: var(--ide-fg);
+      text-shadow: none;
+      font-family: var(--code-font-stack) !important;
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      line-height: 1.6;
+      tab-size: 4;
+      /* 颜色平滑过渡 */
+      transition: color 0.3s, background-color 0.3s, border-color 0.3s;
+    }
+
+    /* Token 映射 */
+    .token.comment, .token.prolog { color: var(--token-comment); font-style: italic; }
+    .token.punctuation { color: var(--token-punctuation); }
+    .token.property, .token.tag, .token.constant, .token.symbol { color: var(--token-variable); }
+    .token.boolean { color: var(--token-boolean); }
+    .token.number { color: var(--token-number); }
+    .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: var(--token-string); }
+    .token.operator, .token.entity, .token.url { color: var(--token-operator); }
+    .token.atrule, .token.attr-value, .token.keyword { color: var(--token-keyword); font-weight: bold;}
+    .token.function, .token.class-name { color: var(--token-function); }
+    .token.regex, .token.important, .token.variable { color: var(--token-variable); }
+
+    /* Hugo 静态代码块修复 */
+    .highlight pre {
+      background-color: var(--ide-bg) !important;
+      border: 1px solid var(--ide-border);
+      border-radius: 6px;
+      color: var(--ide-fg);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+  </style>
 {{ end }}
 
 

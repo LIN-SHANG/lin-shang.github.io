@@ -8,62 +8,120 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 
 <style>
-  /* === 样式保持不变 === */
-  .py-ide-container { display: flex; flex-wrap: wrap; margin: 2rem 0; background: #1e1e1e; border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #333; overflow: hidden; font-family: -apple-system, sans-serif; }
-  .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid #333; }
-  .py-sidebar-col { width: 260px; background: #252526; display: flex; flex-direction: column; font-size: 13px; border-left: 1px solid #333; }
-  .py-header { background: #333333; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #252526; height: 38px; font-size: 12px; font-weight: 600; color: #bbb; }
-  .py-header-title { display: flex; align-items: center; gap: 10px; }
-  .py-shortcut-hint { font-size: 10px; color: #666; font-weight: normal; border: 1px solid #444; padding: 1px 4px; border-radius: 3px;}
-  .py-btn-group { display: flex; gap: 6px; }
-  /* 修改 .py-editor 样式 */
-  .py-editor { 
-  min-height: 250px; 
-  padding: 15px; 
-  /* 字体设置很重要，必须等宽 */
-  font-family: 'Fira Code', 'Menlo', 'Consolas', monospace; 
-  font-size: 14px !important; 
-  line-height: 1.5 !important; 
-  background-color: #1e1e1e; 
-  color: #d4d4d4; 
-  outline: none; 
-  overflow: auto; 
-  border-radius: 0 0 6px 6px;
-  /* 关键：设置光标颜色，否则在某些浏览器可能看不见 */
-  caret-color: #fff; 
-  /* 保持空白符格式 */
-  white-space: pre !important;
-}
+  /* === Py-IDE 容器 === */
+  .py-ide-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    margin: 2rem 0; 
+    /* 关键：使用变量，自动适配黑白 */
+    background: var(--ide-bg); 
+    color: var(--ide-fg);
+    border-radius: 8px; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15); /* 阴影调柔和一点，适应浅色 */
+    border: 1px solid var(--ide-border); 
+    overflow: hidden; 
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+    transition: background 0.3s, border-color 0.3s; /* 增加主题切换时的平滑过渡 */
+  }
 
-/* 覆盖 Prism 的默认背景，使其透明以融合你的 IDE 背景 */
-pre[class*="language-"], code[class*="language-"] {
-  text-shadow: none !important;
-  background: transparent !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-  .py-icon-btn { border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
+  .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid var(--ide-border); }
+  .py-sidebar-col { width: 260px; background: var(--ide-header-bg); display: flex; flex-direction: column; font-size: 13px; border-left: 1px solid var(--ide-border); }
+  
+  .py-header { 
+    background: var(--ide-header-bg);
+    padding: 0 12px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid var(--ide-border); 
+    height: 38px; 
+    font-size: 12px; 
+    font-weight: 600; 
+    color: var(--ide-header-text); 
+    user-select: none;
+  }
+  
+  .py-header-title { display: flex; align-items: center; gap: 10px; }
+  .py-shortcut-hint { font-size: 10px; opacity: 0.7; border: 1px solid var(--ide-border); padding: 1px 5px; border-radius: 4px; }
+  .py-btn-group { display: flex; gap: 8px; }
+
+  /* === 编辑器样式 === */
+  .py-editor { 
+    min-height: 250px; 
+    padding: 15px; 
+    font-family: var(--code-font-stack, monospace);
+    font-size: 14px !important; 
+    line-height: 1.6 !important; 
+    background-color: var(--ide-bg); 
+    color: var(--ide-fg);
+    outline: none; 
+    overflow: auto; 
+    /* 选中文本的颜色 */
+    caret-color: var(--ide-cursor); 
+    white-space: pre !important;
+  }
+  
+  /* 修复 CodeJar/Prism 在编辑器内的背景问题 */
+  .py-editor pre[class*="language-"], 
+  .py-editor code[class*="language-"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: inherit !important;
+    text-shadow: none !important;
+  }
+
+  /* === 输出区域 === */
+  .py-output { 
+    background: var(--ide-output-bg); 
+    color: var(--ide-fg); 
+    padding: 10px 15px; 
+    font-family: var(--code-font-stack, monospace);
+    font-size: 13px; 
+    white-space: pre-wrap; 
+    border-top: 1px solid var(--ide-border); 
+    max-height: 250px; 
+    overflow-y: auto; 
+    border-left: 4px solid var(--ide-output-border); 
+  }
+  
+  /* === 滚动条适配 === */
+  /* 让滚动条颜色也随主题变 */
+  .py-editor::-webkit-scrollbar, .py-output::-webkit-scrollbar, .py-tree-container::-webkit-scrollbar { width: 10px; height: 10px; }
+  .py-editor::-webkit-scrollbar-track, .py-output::-webkit-scrollbar-track { background: var(--ide-bg); }
+  .py-editor::-webkit-scrollbar-thumb, .py-output::-webkit-scrollbar-thumb { background: var(--ide-border); border-radius: 5px; border: 2px solid var(--ide-bg); }
+  .py-editor::-webkit-scrollbar-thumb:hover { background: #888; }
+
+  /* 按钮适配 */
+  .py-icon-btn { border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
   .py-run-btn { background: #2e7d32; color: #fff; }
-  .py-run-btn:hover { background: #388e3c; }
-  .py-run-btn:disabled { background: #444; color: #888; cursor: wait; }
-  .py-reset-btn { background: transparent; color: #aaa; border: 1px solid #444; }
-  .py-reset-btn:hover { background: #444; color: #fff; }
-  .py-output { background: #1e1e1e; color: #cccccc; padding: 10px; font-family: 'Fira Code', 'Menlo', monospace; font-size: 14px; white-space: pre-wrap; border-top: 1px solid #333; max-height: 200px; overflow-y: auto; border-left: 3px solid #007acc; }
-  .py-plot-container { background: white; padding: 15px; text-align: center; border-top: 1px solid #333; display: none; }
-  .py-tree-container { flex: 1; overflow-y: auto; padding: 8px; font-family: 'Fira Code', monospace; }
+  .py-run-btn:hover { background: #4caf50; }
+  .py-run-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+  /* 这里的 reset 按钮需要适配浅色模式 */
+  .py-reset-btn { background: transparent; color: var(--ide-header-text); border: 1px solid var(--ide-border); }
+  .py-reset-btn:hover { background: var(--ide-border); }
+
+  /* 变量树适配 */
+  .py-tree-container { flex: 1; overflow-y: auto; padding: 10px; font-family: var(--code-font-stack, monospace); }
   .t-node { margin-left: 14px; line-height: 1.6; }
-  .t-key { color: #9cdcfe; margin-right: 5px; cursor: pointer; }
-  .t-key:hover { color: #4ec9b0; }
-  .t-val { color: #ce9178; }
-  .t-type { color: #569cd6; opacity: 0.7; font-size: 0.9em; margin-left: 6px; font-style: italic;}
-  .t-arrow { display: inline-block; width: 10px; color: #888; cursor: pointer; transition: transform 0.1s; font-size: 10px; margin-left: -12px; margin-right: 2px;}
+  /* 变量树颜色也需要使用变量 */
+  .t-key { color: var(--token-variable); margin-right: 5px; cursor: pointer; }
+  .t-key:hover { text-decoration: underline; opacity: 0.8; }
+  .t-val { color: var(--token-string); }
+  .t-type { color: var(--token-class); opacity: 0.7; font-size: 0.85em; margin-left: 6px; font-style: italic;}
+  .t-arrow { display: inline-block; width: 14px; color: var(--ide-header-text); cursor: pointer; transition: transform 0.1s; font-size: 10px; text-align: center;}
   .t-arrow.open { transform: rotate(90deg); }
-  .t-collapsible { display: none; }
+  .t-collapsible { display: none; border-left: 1px solid var(--ide-border); margin-left: 4px; padding-left: 4px; }
   .t-collapsible.open { display: block; }
-  .t-empty { color: #666; font-style: italic; margin-left: 14px;}
+  .t-empty { color: var(--ide-header-text); font-style: italic; margin-left: 14px; opacity: 0.6;}
+  
+  /* 绘图容器 */
+  .py-plot-container { background: #fff; padding: 15px; text-align: center; border-top: 1px solid var(--ide-border); display: none; }
 </style>
+
+
 
 {{ $rawContent := .Inner }}
 {{ $cleanContent := $rawContent | replaceRE "^(?s)\\s*```[a-zA-Z0-9]*\\s+" "" }}
