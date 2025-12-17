@@ -1,11 +1,7 @@
 <!-- 
-  PyScript IDE (V7.1 - DOM-Ready Initialization)
-  修复：解决因 JS 执行时机过早导致 IDE 无法加载的致命问题 (Race Condition)
+  PyScript IDE (V7.3 - Scoped & Forced Styles)
+  修复：使用 scoped CSS + !important 强制覆盖 Hugo 主题自带的 Prism 样式
 -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-vsc-dark-plus.min.css" rel="stylesheet" />
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 
 <style>
   /* === Py-IDE 容器 === */
@@ -13,15 +9,17 @@
     display: flex; 
     flex-wrap: wrap; 
     margin: 2rem 0; 
-    /* 关键：使用变量，自动适配黑白 */
-    background: var(--ide-bg); 
+    
+    /* 默认浅色变量 */
+    background-color: var(--ide-bg); 
     color: var(--ide-fg);
-    border-radius: 8px; 
-    box-shadow: 0 5px 20px rgba(0,0,0,0.15); /* 阴影调柔和一点，适应浅色 */
     border: 1px solid var(--ide-border); 
+    
+    border-radius: 8px; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     overflow: hidden; 
     font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-    transition: background 0.3s, border-color 0.3s; /* 增加主题切换时的平滑过渡 */
+    transition: background-color 0.3s, border-color 0.3s;
   }
 
   .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid var(--ide-border); }
@@ -52,16 +50,18 @@
     font-family: var(--code-font-stack, monospace);
     font-size: 14px !important; 
     line-height: 1.6 !important; 
+    
+    /* 默认浅色 */
     background-color: var(--ide-bg); 
     color: var(--ide-fg);
+    
     outline: none; 
     overflow: auto; 
-    /* 选中文本的颜色 */
     caret-color: var(--ide-cursor); 
     white-space: pre !important;
   }
   
-  /* 修复 CodeJar/Prism 在编辑器内的背景问题 */
+  /* 移除编辑器内部干扰样式 */
   .py-editor pre[class*="language-"], 
   .py-editor code[class*="language-"] {
     background: transparent !important;
@@ -87,26 +87,22 @@
     border-left: 4px solid var(--ide-output-border); 
   }
   
-  /* === 滚动条适配 === */
-  /* 让滚动条颜色也随主题变 */
-  .py-editor::-webkit-scrollbar, .py-output::-webkit-scrollbar, .py-tree-container::-webkit-scrollbar { width: 10px; height: 10px; }
-  .py-editor::-webkit-scrollbar-track, .py-output::-webkit-scrollbar-track { background: var(--ide-bg); }
-  .py-editor::-webkit-scrollbar-thumb, .py-output::-webkit-scrollbar-thumb { background: var(--ide-border); border-radius: 5px; border: 2px solid var(--ide-bg); }
-  .py-editor::-webkit-scrollbar-thumb:hover { background: #888; }
+  /* 滚动条 */
+  .py-editor::-webkit-scrollbar, .py-output::-webkit-scrollbar { width: 10px; height: 10px; }
+  .py-editor::-webkit-scrollbar-track, .py-output::-webkit-scrollbar-track { background: transparent; }
+  .py-editor::-webkit-scrollbar-thumb, .py-output::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
 
   /* 按钮适配 */
   .py-icon-btn { border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
   .py-run-btn { background: #2e7d32; color: #fff; }
   .py-run-btn:hover { background: #4caf50; }
   .py-run-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
-  /* 这里的 reset 按钮需要适配浅色模式 */
   .py-reset-btn { background: transparent; color: var(--ide-header-text); border: 1px solid var(--ide-border); }
-  .py-reset-btn:hover { background: var(--ide-border); }
+  .py-reset-btn:hover { background: rgba(128,128,128,0.2); }
 
-  /* 变量树适配 */
+  /* 变量树 */
   .py-tree-container { flex: 1; overflow-y: auto; padding: 10px; font-family: var(--code-font-stack, monospace); }
   .t-node { margin-left: 14px; line-height: 1.6; }
-  /* 变量树颜色也需要使用变量 */
   .t-key { color: var(--token-variable); margin-right: 5px; cursor: pointer; }
   .t-key:hover { text-decoration: underline; opacity: 0.8; }
   .t-val { color: var(--token-string); }
@@ -117,11 +113,8 @@
   .t-collapsible.open { display: block; }
   .t-empty { color: var(--ide-header-text); font-style: italic; margin-left: 14px; opacity: 0.6;}
   
-  /* 绘图容器 */
   .py-plot-container { background: #fff; padding: 15px; text-align: center; border-top: 1px solid var(--ide-border); display: none; }
 </style>
-
-
 
 {{ $rawContent := .Inner }}
 {{ $cleanContent := $rawContent | replaceRE "^(?s)\\s*```[a-zA-Z0-9]*\\s+" "" }}
@@ -157,23 +150,18 @@
 </div>
 
 <script type="module">
-    // 动态引入 CodeJar (从 CDN 加载 ES Module)
     import { CodeJar } from 'https://cdn.jsdelivr.net/npm/codejar@3.7.0/codejar.min.js';
 
     document.addEventListener("DOMContentLoaded", () => {
         const editorEl = document.getElementById("editor-{{ .Ordinal }}");
         const copyBtn = document.getElementById("copy-png-btn-{{ .Ordinal }}");
 
-        if (!editorEl) {
-            console.error("Py-IDE Error: Editor element not found.");
-            return;
-        }
+        if (!editorEl) return;
 
-        // --- 核心修改：定义高亮函数 ---
+        // --- 1. 高亮函数 ---
+        // 确保使用 custom_style.html 里加载的 Prism
         const highlight = (editor) => {
-            // 使用 Prism 对代码进行高亮处理
             if (window.Prism) {
-                // 将代码文本转换为高亮后的 HTML
                 editor.innerHTML = Prism.highlight(
                     editor.textContent, 
                     Prism.languages.python, 
@@ -182,34 +170,39 @@
             }
         };
 
-        // --- 核心修改：初始化 CodeJar ---
-        // CodeJar 会接管 contentEditable 的输入事件和光标管理
-        const jar = CodeJar(editorEl, highlight, {
-            tab: '    ', //按下 Tab 键插入 4 个空格
-        });
+        // --- 2. CodeJar 初始化 ---
+        const jar = CodeJar(editorEl, highlight, { tab: '    ' });
 
-        // --- 解码并填充初始代码 ---
+        // --- 3. MutationObserver 主题监听 (保险起见) ---
+        // 监听 html 标签 class 变化，强制 CodeJar 重绘以应用新的 CSS 变量
+        const observer = new MutationObserver((mutations) => {
+            for(let mutation of mutations) {
+                if (mutation.type === "attributes" && (mutation.attributeName === "class" || mutation.attributeName === "data-theme")) {
+                    // 重新应用代码以触发高亮重绘，确保颜色变量生效
+                    const code = jar.toString();
+                    requestAnimationFrame(() => {
+                        // 强制触发一次重绘，有些浏览器切换变量会有延迟
+                        editorEl.style.display = 'none';
+                        editorEl.offsetHeight; // trigger reflow
+                        editorEl.style.display = 'block';
+                    });
+                }
+            }
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+        // --- 4. 填充初始代码 ---
         try {
             const rawB64 = editorEl.getAttribute("data-code");
             const decodedCode = decodeURIComponent(escape(window.atob(rawB64)));
-            
-            // 使用 CodeJar 的 updateCode 方法来设置内容，它会自动触发高亮
             jar.updateCode(decodedCode);
-            
-            // 确保在 PyScript 准备好之前代码已经显示
-            // (CodeJar 会自动处理 contentEditable="true")
         } catch (e) {
-            console.error("Py-IDE Error: Failed to decode code.", e);
-            editorEl.textContent = "# Error: Could not load code.";
+            console.error("Decode error", e);
         }
 
-        // --- 绑定快捷键 (逻辑保持不变) ---
+        // --- 快捷键 ---
         editorEl.addEventListener('keydown', (e) => {
-            // 阻止 Ctrl+S 保存网页
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-            }
-            // Ctrl + Enter 运行
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') e.preventDefault();
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
                 const runBtn = document.getElementById("btn-{{ .Ordinal }}");
@@ -217,9 +210,8 @@
             }
         });
 
-        // --- 变量树和截图功能 (保持不变) ---
+        // --- 变量树渲染 (保持逻辑不变) ---
         window.renderJsonTree = (containerId, jsonString) => {
-            // ... (此处保持你原有的 renderJsonTree 代码不变) ...
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = "";
@@ -268,13 +260,11 @@
             }
         };
 
+        // --- 截图功能 ---
         const copyPlotAsPng = (btn) => {
-             // ... (此处保持你原有的 copyPlotAsPng 代码不变) ...
              const plotContainer = document.getElementById("plot-{{ .Ordinal }}");
-             // ...略...
-             // 这里的代码太长，逻辑不用动，直接复制你原来的即可
              const svgElement = plotContainer ? plotContainer.querySelector('svg') : null;
-             if (!svgElement) { alert("错误：找不到需要复制的图像。"); return; }
+             if (!svgElement) { alert("找不到图像。"); return; }
              const canvas = document.createElement('canvas');
              const ctx = canvas.getContext('2d');
              const scale = 2; 
@@ -300,11 +290,14 @@
              };
              img.src = svgUrl;
         };
-
         if (copyBtn) copyBtn.onclick = (e) => copyPlotAsPng(e.target);
     });
 </script>
-<!-- Python 代码部分保持不变 -->
+
+<!-- 
+  Python 执行部分保持不变 
+  (为了节省篇幅，请保留你原文件中 <script type="py">...</script> 的所有内容)
+-->
 <script type="py" config='{"packages": ["micropip"]}'>
     from pyscript import window, document, HTML
     import sys, io, micropip, asyncio, html, types, json, base64, os
