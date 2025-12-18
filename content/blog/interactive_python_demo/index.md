@@ -137,6 +137,10 @@ summary: "静态网站也能跑 Python？本文详细记录了如何利用 PyScr
 后面的很多代码
 '''
 ```
+
+这是我生成的 PyTorch 执行过程演示：
+{{< trace-view "/traces/trace_source_code.demo.json" >}}
+
 ## 效果展示与使用
 
 **功能亮点：**

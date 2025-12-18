@@ -1,0 +1,191 @@
+{{ $tracePath := .Get 0 }}
+{{ $userHeight := .Get 1 | default "auto" }}
+
+<div class="stanford-trace-wrapper" style="margin: 2rem 0; border-radius: 8px; background: var(--ide-bg); border: 1px solid var(--ide-border); overflow: hidden; transition: background-color 0.3s;">
+    <iframe 
+        id="trace-iframe-{{ .Ordinal }}"
+        src="/cs336-viewer/index.html?trace={{ $tracePath | relURL }}" 
+        width="100%" 
+        height="200px" 
+        scrolling="no"
+        frameborder="0"
+        style="display: block; border: none; width: 100%;"
+        allowfullscreen>
+    </iframe>
+</div>
+
+<script>
+(function() {
+    const iframeId = "trace-iframe-{{ .Ordinal }}";
+    const iframe = document.getElementById(iframeId);
+    const isAutoHeight = "{{ $userHeight }}" === "auto";
+
+    function updateTheme() {
+        if (!iframe.contentDocument) return;
+        const doc = iframe.contentDocument;
+        const html = document.documentElement;
+        
+        // 1. 获取博客变量
+        const style = getComputedStyle(html);
+        const bg = style.getPropertyValue('--ide-bg').trim();
+        const fg = style.getPropertyValue('--ide-fg').trim();
+        const border = style.getPropertyValue('--ide-border').trim();
+        const isDark = html.classList.contains('dark') || html.getAttribute('data-theme') === 'dark';
+
+        // 2. 注入 Style
+        let styleTag = doc.getElementById('hugo-v12-rich');
+        if (!styleTag) {
+            styleTag = doc.createElement('style');
+            styleTag.id = 'hugo-v12-rich';
+            doc.head.appendChild(styleTag);
+        }
+
+        // === 配色方案定义 ===
+        // 浅色模式保持原味，深色模式使用霓虹亮色
+        // Red (Import): #ff7b72 (Soft Red)
+        // Blue (Numbers): #79c0ff (Soft Blue)
+        // Orange (Strings): #a5d6ff (Soft Cyan) or #ff7b72
+        // Keyword: #d2a8ff (Purple)
+        
+        const codeColors = isDark ? `
+            /* [深色模式霓虹增强] */
+            /* 关键字 (def, class) - 原黄色/红色 -> 亮紫/粉 */
+            [class*="text-red-"], [class*="text-orange-"] { color: #ff79c6 !important; } 
+            
+            /* 数字/变量 - 原蓝色 -> 亮青色 */
+            [class*="text-blue-"] { color: #8be9fd !important; }
+            
+            /* 字符串 - 原绿色 -> 亮绿色 */
+            [class*="text-green-"] { color: #50fa7b !important; }
+            
+            /* 普通代码文字 - 亮白 */
+            [class*="text-gray-9"], [class*="text-gray-8"], .text-black { color: #f8f8f2 !important; }
+            
+            /* 注释 - 灰色 */
+            [class*="text-gray-5"] { color: #6272a4 !important; font-style: italic; }
+
+            /* 高亮行背景 - 深灰蓝 + 左侧亮黄条 */
+            [class*="bg-yellow-"] {
+                background-color: #2c313a !important; 
+                border-left: 3px solid #f1fa8c !important; /* 左侧加一条显眼的线 */
+                color: inherit !important;
+            }
+        ` : `
+            /* [浅色模式微调] */
+            [class*="bg-yellow-"] {
+                background-color: #fff9c4 !important;
+                color: inherit !important;
+                border-left: 3px solid #fbc02d !important;
+            }
+        `;
+
+        styleTag.innerHTML = `
+            /* === 1. 布局自适应 (Responsive Layout) === */
+            html, body, #root {
+                background-color: ${bg} !important;
+                color: ${fg} !important;
+                width: 100% !important;
+                min-height: 0 !important;
+                height: auto !important;
+                overflow-x: hidden !important; /* 防止整体出现横滚 */
+            }
+            
+            /* 关键：允许 Header 换行，防止按钮消失 */
+            .header {
+                background-color: ${bg} !important;
+                border-bottom: 1px solid ${border} !important;
+                display: flex !important;
+                flex-wrap: wrap !important; /* <--- 允许换行 */
+                height: auto !important;
+                min-height: 40px !important;
+                padding-bottom: 4px !important;
+            }
+
+            /* 标题区域：在小屏下允许压缩 */
+            .header-title {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                color: ${fg} !important;
+            }
+
+            /* 按钮区域：保证不被挤出去 */
+            .icon-buttons {
+                margin-left: auto; /* 靠右对齐 */
+                flex-shrink: 0;   /* 禁止压缩按钮 */
+                background: transparent !important;
+            }
+
+            /* 代码区域：允许横向滚动 (Scrollable Code) */
+            /* 找到包含代码的容器 (通常是 lines-panel 下的 div) */
+            .lines-panel {
+                overflow-x: auto !important;
+                width: 100% !important;
+            }
+            /* 强制代码行不换行，保持代码格式 */
+            pre, code {
+                white-space: pre !important; 
+                font-family: 'LXGW WenKai Lite', monospace !important;
+                font-size: 14px !important;
+                line-height: 1.6 !important;
+            }
+
+            /* === 2. 视觉美化 (Visuals) === */
+            body { padding: 0 !important; } /* 移除 body padding，由内部容器控制 */
+            #root { padding: 0 4px !important; }
+
+            /* 消除白底 */
+            [class*="bg-white"], [class*="bg-gray-"], header {
+                background-color: ${bg} !important;
+                border-color: ${border} !important;
+            }
+
+            /* 注入动态配色 (高亮增强) */
+            ${codeColors}
+        `;
+
+        if (isDark) doc.documentElement.classList.add('dark');
+        else doc.documentElement.classList.remove('dark');
+    }
+
+    // === 高度自适应 ===
+    function adjustHeight() {
+        if (!isAutoHeight || !iframe.contentDocument) return;
+        const root = iframe.contentDocument.getElementById('root') || iframe.contentDocument.body;
+        if (root && root.scrollHeight > 50) {
+            // 给一点额外的底部空间，防止横向滚动条遮挡最后一行
+            iframe.style.height = (root.scrollHeight + 30) + "px";
+        }
+    }
+
+    // === 执行逻辑 ===
+    iframe.onload = () => {
+        updateTheme();
+        adjustHeight();
+        
+        const obs = new MutationObserver(() => adjustHeight());
+        if (iframe.contentDocument.body) {
+            obs.observe(iframe.contentDocument.body, { childList: true, subtree: true });
+        }
+        iframe.contentDocument.addEventListener('click', () => setTimeout(adjustHeight, 100));
+    };
+
+    const themeObs = new MutationObserver(() => updateTheme());
+    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    
+    // 监听窗口大小变化 (实现响应式高度调整)
+    window.addEventListener('resize', () => {
+        adjustHeight();
+    });
+
+    // 兜底
+    let count = 0;
+    const interval = setInterval(() => {
+        updateTheme();
+        adjustHeight();
+        count++;
+        if (count > 10) clearInterval(interval);
+    }, 200);
+})();
+</script>

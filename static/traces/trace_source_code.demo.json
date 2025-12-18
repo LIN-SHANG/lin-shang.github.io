@@ -1,0 +1,77 @@
+{
+  "files": {
+    "trace_source_code/demo.py": "# demo.py\nimport torch\n\ndef main():\n    x = torch.tensor([1.0, 2.0, 3.0])\n    y = x * 2\n    z = y.sum()\n    print(\"Result:\", z)\n\nmain()"
+  },
+  "steps": [
+    {
+      "stack": [
+        {
+          "path": "trace_source_code/demo.py",
+          "line_number": 4,
+          "function_name": "main",
+          "code": "def main():"
+        }
+      ],
+      "env": {},
+      "renderings": [],
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "stack": [
+        {
+          "path": "trace_source_code/demo.py",
+          "line_number": 5,
+          "function_name": "main",
+          "code": "x = torch.tensor([1.0, 2.0, 3.0])"
+        }
+      ],
+      "env": {},
+      "renderings": [],
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "stack": [
+        {
+          "path": "trace_source_code/demo.py",
+          "line_number": 6,
+          "function_name": "main",
+          "code": "y = x * 2"
+        }
+      ],
+      "env": {},
+      "renderings": [],
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "stack": [
+        {
+          "path": "trace_source_code/demo.py",
+          "line_number": 7,
+          "function_name": "main",
+          "code": "z = y.sum()"
+        }
+      ],
+      "env": {},
+      "renderings": [],
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "stack": [
+        {
+          "path": "trace_source_code/demo.py",
+          "line_number": 8,
+          "function_name": "main",
+          "code": "print(\"Result:\", z)"
+        }
+      ],
+      "env": {},
+      "renderings": [],
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}
