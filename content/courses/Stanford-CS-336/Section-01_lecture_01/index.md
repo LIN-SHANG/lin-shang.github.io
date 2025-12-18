@@ -12,7 +12,7 @@ content_meta:
   difficulty: M.S. level and upper
   prerequisites:
     - Markdown
-  trending: false
+  trending: true
 menu:
   Stanford-CS-336:
     name: Overview

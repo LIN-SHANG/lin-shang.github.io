@@ -1,9 +1,22 @@
 ---
-title: "如果不只是展示代码：如何在 Hugo 静态博客中构建交互式 Python 环境"
+title: "如果不只是展示代码：Run Python in My Hugo blog."
 date: 2025-12-17
 
+authors:
+  - me
 python: true
 type: docs
+# image:
+#   caption: "Image credit: [HugoBlox](https://hugoblox.com)"
+#   focal_point: Center
+#   placement: 1
+content_meta:
+  trending: true
+
+# cover:
+#   image: cover.png  # Auto-detected from cover image in this folder
+#   icon:
+#     name: "📔"
 
 tags: ["Hugo", "Python", "PyScript", "WebAssembly", "Tutorial"]
 categories: ["Tech Engineering"]
