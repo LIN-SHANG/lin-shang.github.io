@@ -1,97 +1,80 @@
-<!-- 
-  PyScript IDE (Monokai Pro Ultimate)
-  完全依赖 custom_style.html 定义的 CSS 变量，确保与图片一致
--->
-
+<!-- Py-IDE: 统一字体版 -->
 <style>
-  /* === IDE 容器样式 === */
+  /* 1. 继承全局变量 */
+  .py-ide-wrapper {
+    /* 引用 custom_style.html 定义的全局字体 */
+    --ide-font: var(--global-code-font);
+    --ide-size: var(--global-code-size);
+    --ide-lh: var(--global-line-height);
+
+    /* 按钮颜色 */
+    --ide-btn-run: #2da44e;
+    --ide-btn-text: #ffffff;
+    --ide-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* 深色模式适配 */
+  :root[data-theme="dark"] .py-ide-wrapper,
+  html.dark .py-ide-wrapper, 
+  body.dark .py-ide-wrapper {
+    --ide-btn-run: #A9DC76;
+    --ide-btn-text: #000000;
+    --ide-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  /* 2. 容器样式 */
   .py-ide-container {
-    background-color: var(--mk-bg) !important; /* 核心：使用 Monokai Pro 背景 */
-    color: var(--mk-fg) !important;
-    border: 1px solid var(--mk-border);
+    background-color: var(--ide-bg); /* 来自全局变量 */
+    color: var(--ide-fg);
+    border: 1px solid var(--ide-border);
     border-radius: 8px;
     margin: 2rem 0;
     overflow: hidden;
-    display: flex; 
-    flex-wrap: wrap; 
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12); /* 更柔和的投影 */
-    transition: background-color 0.3s, border-color 0.3s;
+    display: flex; flex-wrap: wrap; width: 100%;
+    box-shadow: var(--ide-shadow);
+    transition: all 0.3s ease;
   }
 
-  /* 头部和侧边栏稍微变色，增加层次感 */
-  .py-sidebar-col, .py-header {
-    background-color: rgba(128,128,128, 0.05) !important; /* 叠加一层淡淡的遮罩 */
-    border-color: var(--mk-border) !important;
-  }
-
-  /* === 编辑器区域 === */
-  .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid var(--mk-border); }
-  .py-sidebar-col { width: 260px; border-left: 1px solid var(--mk-border); font-size: 13px; display: flex; flex-direction: column; }
-  
   .py-header { 
-    height: 38px; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; 
-    border-bottom: 1px solid var(--mk-border); 
-    font-size: 12px; font-weight: 600; color: var(--mk-fg); opacity: 0.9;
+    height: 40px; padding: 0 12px; display: flex; justify-content: space-between; align-items: center; 
+    background-color: var(--ide-header-bg); border-bottom: 1px solid var(--ide-border); 
+    font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 600; color: var(--ide-fg);
   }
 
-  /* 编辑器本体 - 关键！背景透明，文字继承 */
+  /* 3. 编辑器 & 输出: 强制使用全局字体 */
   .py-editor { 
-    min-height: 250px; 
-    padding: 15px; 
-    font-family: var(--code-font-stack, monospace) !important;
-    font-size: 14px !important; 
-    line-height: 1.6 !important; 
-    background-color: transparent !important; /* 关键 */
-    color: inherit !important;                /* 关键 */
-    outline: none; 
-    overflow: auto; 
-    caret-color: var(--mk-keyword);           /* 光标跟随关键字颜色(粉红) */
-    white-space: pre !important;
+    min-height: 200px; padding: 15px; 
+    font-family: var(--ide-font) !important; 
+    font-size: var(--ide-size) !important;
+    line-height: var(--ide-lh) !important;
+    background-color: transparent; color: inherit; outline: none; white-space: pre; overflow: auto;
   }
-
-  /* 输出区域 */
+  
   .py-output { 
-    padding: 10px 15px; font-family: monospace; font-size: 13px; white-space: pre-wrap; 
-    border-top: 1px solid var(--mk-border); 
-    max-height: 250px; overflow-y: auto; 
-    background-color: rgba(0,0,0,0.02) !important; /* 输出区极淡的背景区分 */
-    color: var(--mk-fg);
+    padding: 10px 15px; border-top: 1px solid var(--ide-border); 
+    background-color: rgba(127,127,127,0.05); color: var(--ide-fg);
+    font-family: var(--ide-font) !important; 
+    font-size: 13px; /* 输出区保持略小 */
+    white-space: pre-wrap; max-height: 250px; overflow-y: auto;
   }
-  
-  /* 滚动条美化 */
-  .py-editor::-webkit-scrollbar, .py-output::-webkit-scrollbar, .py-tree-container::-webkit-scrollbar { width: 8px; height: 8px; }
-  .py-editor::-webkit-scrollbar-track, .py-output::-webkit-scrollbar-track { background: transparent; }
-  .py-editor::-webkit-scrollbar-thumb, .py-output::-webkit-scrollbar-thumb { background: var(--mk-border); border-radius: 4px; }
-  .py-editor::-webkit-scrollbar-thumb:hover { background: var(--mk-fg); opacity: 0.5; }
 
-  /* 按钮 - 模仿 Pro 风格 */
+  /* 按钮样式 */
+  .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid var(--ide-border); }
+  .py-sidebar-col { width: 260px; border-left: 1px solid var(--ide-border); display: flex; flex-direction: column; font-size: 13px;}
+  .py-btn-group { display: flex; gap: 8px; align-items: center; }
   .py-run-btn { 
-    background: var(--mk-function); /* 绿色按钮 */
-    color: #2D2A2E;                 /* 黑色文字 */
-    border: none; padding: 4px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;
-    transition: filter 0.2s;
+    background: var(--ide-btn-run) !important; color: var(--ide-btn-text) !important; 
+    border: none; padding: 5px 16px; border-radius: 4px; cursor: pointer; 
+    font-weight: 800; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    transition: transform 0.1s;
   }
-  .py-run-btn:hover { filter: brightness(1.1); }
-  .py-run-btn:disabled { background: var(--mk-border); color: var(--mk-fg); cursor: not-allowed; filter: none; opacity: 0.6; }
-  
-  .py-reset-btn { 
-    background: transparent; color: var(--mk-fg); border: 1px solid var(--mk-border); 
-    padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;
+  .py-run-btn:active { transform: translateY(1px); }
+  .py-icon-btn { 
+    background: transparent; color: var(--ide-fg); border: 1px solid var(--ide-border); 
+    padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; 
   }
-  .py-reset-btn:hover { border-color: var(--mk-keyword); color: var(--mk-keyword); }
-
-  /* 变量树 */
   .py-tree-container { padding: 10px; flex: 1; overflow-y: auto; }
-  .t-node { margin-left: 14px; line-height: 1.6; }
-  .t-key { color: var(--mk-class); cursor: pointer; }   /* 蓝色 Key */
-  .t-val { color: var(--mk-string); }                   /* 黄色 Value */
-  .t-type { color: var(--mk-comment); font-size: 0.85em; margin-left: 5px; font-style: italic;}
-  .t-arrow { display: inline-block; width: 14px; color: var(--mk-fg); cursor: pointer; font-size: 10px; opacity: 0.7;}
-  .t-collapsible { display: none; border-left: 1px solid var(--mk-border); margin-left: 4px; padding-left: 4px; }
-  .t-collapsible.open { display: block; }
-  .t-empty { color: var(--mk-comment); font-style: italic; opacity: 0.7; }
-  
-  .py-plot-container { background: white; padding: 15px; text-align: center; border-top: 1px solid var(--mk-border); display: none; }
+  .py-plot-container { background: white; padding: 15px; text-align: center; border-top: 1px solid var(--ide-border); display: none; }
 </style>
 
 {{ $rawContent := .Inner }}
@@ -99,247 +82,170 @@
 {{ $cleanContent := $cleanContent | replaceRE "\\s*```\\s*$" "" }}
 {{ $b64Code := $cleanContent | base64Encode }}
 
-<div class="py-ide-container">
-    <div class="py-main-col">
-        <div class="py-header">
-            <div class="py-header-title">TERMINAL</div>
-            <div class="py-btn-group">
-                <button id="reset-{{ .Ordinal }}" class="py-reset-btn" py-click="reset_code_{{ .Ordinal }}">RESET</button>
-                <button id="btn-{{ .Ordinal }}" class="py-run-btn" py-click="run_code_{{ .Ordinal }}">▶ RUN</button>
+<div class="py-ide-wrapper">
+    <div class="py-ide-container">
+        <div class="py-main-col">
+            <div class="py-header">
+                <span>TERMINAL</span>
+                <div class="py-btn-group">
+                    <button id="copy-code-{{ .Ordinal }}" class="py-icon-btn" onclick="copyIdeCode('{{ .Ordinal }}')">COPY</button>
+                    <button class="py-icon-btn" py-click="reset_code_{{ .Ordinal }}">RESET</button>
+                    <button id="btn-{{ .Ordinal }}" class="py-run-btn" py-click="run_code_{{ .Ordinal }}">▶ RUN</button>
+                </div>
             </div>
+            
+            <div id="editor-{{ .Ordinal }}" class="py-editor language-python" data-code="{{ $b64Code }}"></div>
+            <div class="py-output" id="output-{{ .Ordinal }}">> Ready.</div>
+            
+            <div id="plot-header-{{ .Ordinal }}" class="py-header" style="display: none; justify-content: flex-end; border-top: 1px solid var(--ide-border);">
+                <button id="copy-png-btn-{{ .Ordinal }}" class="py-icon-btn">Save PNG</button>
+            </div>
+            <div class="py-plot-container" id="plot-{{ .Ordinal }}"></div>
         </div>
-        
-        <div id="editor-{{ .Ordinal }}" class="py-editor language-python" data-code="{{ $b64Code }}"></div>
-        <div class="py-output" id="output-{{ .Ordinal }}">> Ready.</div>
-        
-        <div id="plot-header-{{ .Ordinal }}" class="py-header" style="display: none; justify-content: flex-end; border-top: 1px solid var(--mk-border);">
-            <button id="copy-png-btn-{{ .Ordinal }}" class="py-reset-btn">Copy PNG</button>
-        </div>
-        <div class="py-plot-container" id="plot-{{ .Ordinal }}"></div>
-    </div>
 
-    <div class="py-sidebar-col">
-        <div class="py-header">VARIABLES</div>
-        <div id="tree-{{ .Ordinal }}" class="py-tree-container"></div>
+        <div class="py-sidebar-col">
+            <div class="py-header">VARIABLES</div>
+            <div id="tree-{{ .Ordinal }}" class="py-tree-container"></div>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { CodeJar } from 'https://cdn.jsdelivr.net/npm/codejar@3.7.0/codejar.min.js';
 
+    window.copyIdeCode = function(ordinal) {
+        const el = document.getElementById(`editor-${ordinal}`);
+        if(el) {
+            navigator.clipboard.writeText(el.innerText).then(() => {
+                const btn = document.getElementById(`copy-code-${ordinal}`);
+                const old = btn.innerText;
+                btn.innerText = "✓";
+                setTimeout(() => { btn.innerText = old; }, 1500);
+            });
+        }
+    };
+
     document.addEventListener("DOMContentLoaded", () => {
         const editorEl = document.getElementById("editor-{{ .Ordinal }}");
-        const copyBtn = document.getElementById("copy-png-btn-{{ .Ordinal }}");
-
         if (!editorEl) return;
 
-        // 高亮逻辑
         const highlight = (editor) => {
-            // 确保 Prism 存在
-            if (window.Prism) {
-                // Prism 会生成 <span class="token keyword"> 这样的标签
-                // 这些标签会自动匹配我们在 custom_style.html 里定义的颜色变量
-                editor.innerHTML = Prism.highlight(
-                    editor.textContent, 
-                    Prism.languages.python, 
-                    'python'
-                );
+            if (window.Prism && Prism.languages.python) {
+                editor.innerHTML = Prism.highlight(editor.textContent, Prism.languages.python, 'python');
             }
         };
 
         const jar = CodeJar(editorEl, highlight, { tab: '    ' });
 
         try {
-            const rawB64 = editorEl.getAttribute("data-code");
-            const decodedCode = decodeURIComponent(escape(window.atob(rawB64)));
-            jar.updateCode(decodedCode);
-        } catch (e) {
-            console.error(e);
-            editorEl.innerText = "# Error loading code";
-        }
+            const raw = editorEl.getAttribute("data-code");
+            const decoded = decodeURIComponent(escape(window.atob(raw)));
+            jar.updateCode(decoded);
+        } catch (e) { console.error(e); }
 
         editorEl.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                const runBtn = document.getElementById("btn-{{ .Ordinal }}");
-                if (runBtn && !runBtn.disabled) runBtn.click();
+                document.getElementById("btn-{{ .Ordinal }}").click();
             }
         });
 
-        const copyPlotAsPng = (btn) => {
-             const plotContainer = document.getElementById("plot-{{ .Ordinal }}");
-             const svgElement = plotContainer ? plotContainer.querySelector('svg') : null;
-             if (!svgElement) { alert("No plot to copy"); return; }
-             const canvas = document.createElement('canvas');
-             const ctx = canvas.getContext('2d');
-             const scale = 2; 
-             const viewbox = svgElement.viewBox.baseVal;
-             canvas.width = viewbox.width * scale;
-             canvas.height = viewbox.height * scale;
-             const img = new Image();
-             const svgData = new XMLSerializer().serializeToString(svgElement);
-             const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-             img.onload = () => {
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob((blob) => {
-                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-                        .then(() => {
-                            const originalText = btn.innerText;
-                            btn.innerText = "Copied!";
-                            setTimeout(() => { btn.innerText = originalText; }, 2000);
-                        })
-                        .catch(err => { console.error(err); alert('Failed to copy'); });
-                }, 'image/png');
-             };
-             img.src = svgUrl;
-        };
-        if (copyBtn) copyBtn.onclick = (e) => copyPlotAsPng(e.target);
+        // Plot Copy
+        const copyBtn = document.getElementById("copy-png-btn-{{ .Ordinal }}");
+        if(copyBtn) {
+            copyBtn.onclick = () => {
+                const plot = document.getElementById("plot-{{ .Ordinal }}");
+                const svg = plot.querySelector('svg');
+                if(!svg) return;
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                const data = (new XMLSerializer()).serializeToString(svg);
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(data);
+                img.onload = () => {
+                    canvas.width = svg.viewBox.baseVal.width * 2;
+                    canvas.height = svg.viewBox.baseVal.height * 2;
+                    ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                    ctx.drawImage(img, 0,0,canvas.width,canvas.height);
+                    canvas.toBlob(b => navigator.clipboard.write([new ClipboardItem({'image/png':b})]));
+                    const old = copyBtn.innerText;
+                    copyBtn.innerText = "Copied!";
+                    setTimeout(() => copyBtn.innerText = old, 1500);
+                };
+            };
+        }
     });
 </script>
 
-<!-- Python 执行部分保持原样，直接粘贴你之前的代码即可 -->
-<script type="py" config='{"packages": ["micropip"]}'>
-    from pyscript import window, document, HTML
-    import sys, io, micropip, asyncio, html, types, json, base64, os
-
-    class DOMStream:
-        def __init__(self, element_id): self.element_id = element_id
-        def write(self, text):
-            el = document.getElementById(self.element_id)
-            if el:
-                el.innerText += text
-                el.scrollTop = el.scrollHeight
-        def flush(self): pass
+<script type="py" config='{"packages": ["micropip", "numpy", "matplotlib"]}'>
+    from pyscript import window, document
+    import sys, io, micropip, asyncio, html, json
 
     if 'kernels' not in globals(): kernels = {}
-    if {{ .Ordinal }} not in kernels: kernels[{{ .Ordinal }}] = {}
+    kernels[{{ .Ordinal }}] = {}
 
-    async def init_system_{{ .Ordinal }}():
-        output_id = "output-{{ .Ordinal }}"
-        stream = DOMStream(output_id)
-        stream.write("> Core loaded.\n")
-        stream.write("> Downloading libraries & resources...\n")
-        
-        try:
-            await micropip.install(["numpy", "matplotlib"])
-            import matplotlib
-            matplotlib.use("Agg") 
-            import matplotlib.pyplot as plt
-            import matplotlib.font_manager as fm
-            from pyodide.http import pyfetch
-
-            font_url = "{{ "font/LXGWWenKaiLite-Light.ttf" | relURL }}" 
-            font_path = "LXGWWenKaiLite-Light.ttf" 
-            stream.write(f"> Fetching font from: {font_url}\n")
-            
-            response = await pyfetch(font_url)
-            if response.status == 200:
-                with open(font_path, "wb") as f:
-                    f.write(await response.bytes())
-                fm.fontManager.addfont(font_path)
-                plt.rcParams['font.family'] = ['LXGW WenKai Lite'] 
-                plt.rcParams['axes.unicode_minus'] = False 
-                stream.write("> Chinese font configured.\n")
-            else:
-                stream.write(f"> Warning: Failed to fetch font (Status {response.status}).\n")
-            stream.write("> System Ready. 🚀\n")
-        except Exception as e:
-            stream.write(f"> Init Error: {e}\n")
-
-    asyncio.ensure_future(init_system_{{ .Ordinal }}())
+    class DOMStream:
+        def __init__(self, element_id): self.id = element_id
+        def write(self, text):
+            el = document.getElementById(self.id)
+            if el: el.innerText += text; el.scrollTop = el.scrollHeight
+        def flush(self): pass
 
     def get_scope_tree(scope):
-        tree_data = {}
-        def safe_str(v):
-            try: s = str(v)
-            except: s = "<error>"
-            return html.escape(s[:50] + "..." if len(s) > 50 else s)
+        data = {}
         for k, v in scope.items():
-            if k.startswith("_") or k in ['open', 'exit', 'quit', 'In', 'Out', 'get_ipython', 'show_plot', 'matplotlib', 'plt', 'micropip', 'fm', 'pyfetch', 'os']: continue
-            if isinstance(v, (types.ModuleType, types.FunctionType, type)): continue
-            val_type = type(v).__name__
-            children = None
-            display_val = safe_str(v)
-            if isinstance(v, dict):
-                children = {}
-                display_val = f"dict[{len(v)}]"
-                for sk, sv in list(v.items())[:20]:
-                    children[str(sk)] = {"val": safe_str(sv), "type": type(sv).__name__, "children": None}
-            elif isinstance(v, (list, tuple)):
-                children = {}
-                display_val = f"{val_type}[{len(v)}]"
-                for i, sv in enumerate(v[:20]):
-                    children[str(i)] = {"val": safe_str(sv), "type": type(sv).__name__, "children": None}
-            tree_data[k] = {"val": display_val, "type": val_type, "children": children}
-        return json.dumps(tree_data)
+            if k.startswith("_") or hasattr(v, '__call__') or type(v).__name__ == 'module': continue
+            val_str = str(v)[:50]
+            data[k] = {"val": html.escape(val_str), "type": type(v).__name__}
+        return json.dumps(data)
 
-    def _show_plot_helper():
-        try:
-            import matplotlib.pyplot as plt
-        except ImportError:
-            print("Matplotlib not ready yet.")
-            return
-        plot_div = document.getElementById("plot-{{ .Ordinal }}")
-        plot_header = document.getElementById("plot-header-{{ .Ordinal }}")
+    def _show_plot():
+        import matplotlib.pyplot as plt
+        div = document.getElementById("plot-{{ .Ordinal }}")
+        hdr = document.getElementById("plot-header-{{ .Ordinal }}")
         buf = io.StringIO()
-        try:
-            plt.savefig(buf, format='svg', bbox_inches='tight')
-            buf.seek(0)
-            svg_string = buf.getvalue()
-            plot_div.innerHTML = svg_string
-            plot_div.style.display = "block"
-            plot_header.style.display = "flex"
-            print("System: SVG Plot generated.")
-        except Exception as e:
-            print(f"System Error: Plotting failed - {e}")
-        finally:
-            plt.clf()
-            buf.close()
+        plt.savefig(buf, format='svg', bbox_inches='tight')
+        div.innerHTML = buf.getvalue()
+        div.style.display = "block"
+        hdr.style.display = "flex"
+        plt.clf()
 
-    def reset_code_{{ .Ordinal }}(event):
-        kernels[{{ .Ordinal }}] = {}
-        kernels[{{ .Ordinal }}]["show_plot"] = _show_plot_helper
-        document.getElementById("output-{{ .Ordinal }}").innerText = "> Environment reset."
+    def reset_code_{{ .Ordinal }}(e):
+        kernels[{{ .Ordinal }}] = {"show_plot": _show_plot}
+        document.getElementById("output-{{ .Ordinal }}").innerText = "> Reset.\n"
         window.renderJsonTree("tree-{{ .Ordinal }}", "{}")
         document.getElementById("plot-{{ .Ordinal }}").style.display = "none"
         document.getElementById("plot-header-{{ .Ordinal }}").style.display = "none"
 
-    async def run_code_{{ .Ordinal }}(event):
-        output_id = "output-{{ .Ordinal }}"
-        tree_id = "tree-{{ .Ordinal }}"
+    async def run_code_{{ .Ordinal }}(e):
         btn = document.getElementById("btn-{{ .Ordinal }}")
-        output_el = document.getElementById(output_id)
+        out = document.getElementById("output-{{ .Ordinal }}")
+        editor = document.getElementById("editor-{{ .Ordinal }}")
         btn.disabled = True
         btn.innerText = "Running..."
-        output_el.innerText = "" 
-        user_selection = window.getSelection().toString()
-        full_code = document.getElementById("editor-{{ .Ordinal }}").textContent
-        code_to_run = user_selection if user_selection.strip() else full_code
-        if user_selection.strip(): output_el.innerText = "> Running selection...\n"
-        current_scope = kernels[{{ .Ordinal }}]
-        if "show_plot" not in current_scope: current_scope["show_plot"] = _show_plot_helper
-        first_line = code_to_run.strip().split('\n')[0]
-        if first_line.startswith("# install:"):
-            pkgs = [p.strip() for p in first_line.replace("# install:", "").split(",") if p.strip()]
-            if pkgs:
-                output_el.innerText += f"> Installing: {', '.join(pkgs)}...\n"
-                try: await micropip.install(pkgs)
-                except Exception as e: output_el.innerText += f"Install failed: {e}\n"
-        stream = DOMStream(output_id)
-        original_stdout, original_stderr = sys.stdout, sys.stderr
-        sys.stdout, sys.stderr = stream, stream
+        out.innerText = ""
+        
+        code = window.getSelection().toString()
+        if not code.strip(): code = editor.textContent
+        
+        scope = kernels[{{ .Ordinal }}]
+        if "show_plot" not in scope: scope["show_plot"] = _show_plot
+        
+        stream = DOMStream("output-{{ .Ordinal }}")
+        sys.stdout = stream
+        sys.stderr = stream
+        
         try:
-            exec(code_to_run, current_scope, current_scope)
-        except Exception as e:
-            print(f"Runtime Error: {e}")
+            await asyncio.sleep(0.1)
+            exec(code, scope, scope)
+        except Exception as err:
+            print(f"Error: {err}")
         finally:
-            sys.stdout, sys.stderr = original_stdout, original_stderr
+            sys.stdout = sys.__stdout__
             try:
-                tree_json = get_scope_tree(current_scope)
-                window.renderJsonTree(tree_id, tree_json)
-            except Exception as e: print(f"Tree Error: {e}")
+                tree = get_scope_tree(scope)
+                window.renderJsonTree("tree-{{ .Ordinal }}", tree)
+            except: pass
             btn.disabled = False
             btn.innerText = "▶ RUN"
 </script>

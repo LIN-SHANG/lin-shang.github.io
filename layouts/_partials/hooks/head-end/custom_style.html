@@ -1,204 +1,175 @@
 <!-- 
   文件位置: layouts/_partials/hooks/head-end/custom_style.html
-  第一段作用: 全局生效 (去除反引号)
-  第二段作用: 仅在 type: docs 的页面（课程详情页）强制变宽，不影响首页和列表页
+  包含: 全局字体、颜色变量、代码高亮映射(Chroma+Prism)、PyScript依赖、宽屏适配
 -->
 
 <style>
-  :not(pre) > code::before,
-  :not(pre) > code::after,
-  span.code::before,
-  span.code::after {
-    content: none !important;
+  /* === 1. 基础设置 === */
+  /* 去除行内代码反引号 */
+  :not(pre) > code::before, :not(pre) > code::after, span.code::before, span.code::after { content: none !important; }
+  :not(pre) > code { padding: 0.1rem 0.3rem !important; background-color: rgba(127, 127, 127, 0.12); border-radius: 4px; font-size: 0.9em; }
+
+  /* 字体定义 */
+  @font-face {
+    font-family: 'LXGW WenKai Lite';
+    src: url('{{ "font/LXGWWenKaiLite-Light.ttf" | relURL }}') format('truetype');
+    font-weight: normal; font-style: normal; display: swap;
   }
+
+  /* === 2. 全局颜色变量 (Source of Truth) === */
+  :root {
+    /* 字体与字号 */
+    --global-code-font: 'Fira Code', 'Consolas', 'Menlo', 'LXGW WenKai Lite', monospace;
+    --global-code-size: 14.5px;
+    --global-line-height: 1.6;
+
+    /* Light Mode */
+    --ide-bg: #ffffff;
+    --ide-border: #d0d7de;
+    --ide-fg: #24292e;         /* 默认代码文字颜色 */
+    --ide-header-bg: #f6f8fa;
+    
+    --static-code-bg: #f6f8fa; /* 静态块背景 */
+    --static-code-border: #d0d7de;
+    --static-code-fg: #24292e;
+
+    /* Trace View 高亮 */
+    --trace-hl-bg: #fffbdd;
+    --trace-hl-border: #d4a72c;
+
+    /* === Token Colors (统一高亮配色：VS Code Light 风格) === */
+    --token-keyword: #d73a49;      /* def, return, import */
+    --token-function: #6f42c1;     /* main, func */
+    --token-string: #032f62;       /* "string" */
+    --token-number: #005cc5;       /* 123 */
+    --token-comment: #6a737d;      /* # comment */
+    --token-class: #6f42c1;        /* class Name */
+    --token-variable: #24292e;     /* x, y */
+    --token-operator: #d73a49;     /* =, +, * */
+    --token-builtin: #005cc5;      /* print, len, range */
+    --token-boolean: #005cc5;      /* True, False */
+    --token-punctuation: #24292e;  /* (), [], : */
+  }
+
+  /* Dark Mode */
+  html.dark, body.dark, html[data-theme="dark"], .dark {
+    /* Base Colors */
+    --ide-bg: #161b22;
+    --ide-border: #30363d;
+    --ide-fg: #c9d1d9;
+    --ide-header-bg: #0d1117;
+
+    --static-code-bg: #161b22;
+    --static-code-border: #30363d;
+    --static-code-fg: #c9d1d9;
+
+    --trace-hl-bg: rgba(187, 128, 9, 0.15);
+    --trace-hl-border: #d29922;
+
+    /* === Token Colors (统一高亮配色：GitHub Dark 风格) === */
+    --token-keyword: #ff7b72;      /* def, return */
+    --token-function: #d2a8ff;     /* main */
+    --token-string: #a5d6ff;       /* "string" */
+    --token-number: #79c0ff;       /* 123 */
+    --token-comment: #8b949e;      /* comment */
+    --token-class: #f0883e;        /* class */
+    --token-variable: #c9d1d9;     /* x */
+    --token-operator: #ff7b72;     /* = */
+    --token-builtin: #79c0ff;      /* print */
+    --token-boolean: #79c0ff;      /* True */
+    --token-punctuation: #c9d1d9;
+  }
+
+  /* === 3. 高亮映射 (核心修复) === */
   
-  /* 可选：给去掉了引号的代码一点点左右间距，防止粘连文字 */
-  :not(pre) > code {
-    padding: 0.1rem 0.2rem !important;
+  /* 3.1 静态代码块 (.highlight) 样式 */
+  .highlight { margin: 1.5rem 0; }
+  .highlight pre {
+    background-color: var(--static-code-bg) !important;
+    border: 1px solid var(--static-code-border) !important;
+    border-radius: 6px;
+    color: var(--static-code-fg) !important;
+    padding: 1rem;
+    overflow: auto;
+    font-family: var(--global-code-font) !important;
+    font-size: var(--global-code-size) !important;
+    line-height: var(--global-line-height) !important;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  .highlight code {
+    background-color: transparent !important; color: inherit !important; border: none !important; padding: 0 !important; font-family: inherit !important;
+  }
+
+  /* 3.2 Token 颜色绑定 (同时支持 Prism 和 Chroma) */
+  /* Keyword: def, if, import */
+  .token.keyword,               /* Prism */
+  .chroma .k, .chroma .kd, .chroma .kp, .chroma .kr, .chroma .kt /* Chroma */
+  { color: var(--token-keyword) !important; font-weight: bold; }
+
+  /* Function: main(), my_func */
+  .token.function, .token.attr-name, /* Prism */
+  .chroma .nf, .chroma .na, .chroma .nl, .chroma .no  /* Chroma */
+  { color: var(--token-function) !important; }
+
+  /* String: "text" */
+  .token.string, .token.char, /* Prism */
+  .chroma .s, .chroma .sa, .chroma .sb, .chroma .sc, .chroma .dl, .chroma .sd, .chroma .s2, .chroma .se, .chroma .sh, .chroma .si, .chroma .sx, .chroma .sr, .chroma .s1, .chroma .ss /* Chroma */
+  { color: var(--token-string) !important; }
+
+  /* Comment: # text */
+  .token.comment, .token.prolog, .token.doctype, .token.cdata, /* Prism */
+  .chroma .c, .chroma .ch, .chroma .cm, .chroma .c1, .chroma .cs, .chroma .cp, .chroma .cpf /* Chroma */
+  { color: var(--token-comment) !important; font-style: italic; }
+
+  /* Number: 123, 0.5 */
+  .token.number, /* Prism */
+  .chroma .m, .chroma .mb, .chroma .mf, .chroma .mh, .chroma .mi, .chroma .il, .chroma .mo /* Chroma */
+  { color: var(--token-number) !important; }
+
+  /* Operator: +, *, = */
+  .token.operator, .token.entity, .token.url, /* Prism */
+  .chroma .o, .chroma .ow /* Chroma */
+  { color: var(--token-operator) !important; }
+
+  /* Class / Type */
+  .token.class-name, /* Prism */
+  .chroma .nc, .chroma .nt /* Chroma */
+  { color: var(--token-class) !important; }
+
+  /* Builtin / Boolean: print, True */
+  .token.builtin, .token.boolean, /* Prism */
+  .chroma .nb, .chroma .bp, .chroma .kc /* Chroma */
+  { color: var(--token-builtin) !important; }
+
+  /* Punctuation / Variables */
+  .token.punctuation, .token.variable, /* Prism */
+  .chroma .p, .chroma .n, .chroma .nv, .chroma .nx /* Chroma */
+  { color: var(--token-variable) !important; }
+
+  /* Prism 通用设置 */
+  code[class*="language-"], pre[class*="language-"] {
+    text-shadow: none; direction: ltr; text-align: left; white-space: pre; tab-size: 4;
   }
 </style>
 
-
+<!-- === 4. PyScript 依赖 === -->
 {{ if .Params.python }}
-  <!-- 1. COI Service Worker -->
   <script src='{{ "js/coi-serviceworker.js" | relURL }}'></script>
-
-  <!-- 2. PyScript 核心 -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
   <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
-
-  <!-- 3. PrismJS 核心 (无 CSS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
-
-  <!-- 4. 动态主题系统 (修复版) -->
-  <style>
-    /* 字体定义 */
-    @font-face {
-      font-family: 'LXGW WenKai Lite';
-      src: url('{{ "font/LXGWWenKaiLite-Light.ttf" | relURL }}') format('truetype');
-      font-weight: normal; font-style: normal; display: swap;
-    }
-    :root { 
-      --code-font-stack: 'Fira Code', 'Consolas', 'Menlo', 'LXGW WenKai Lite', monospace; 
-    }
-
-    /* === 1. 默认浅色模式 (Light Mode) === */
-    /* 定义在 :root (即 html) 上 */
-    :root {
-      --ide-bg: #ffffff;
-      --ide-border: #e0e0e0;
-      --ide-header-bg: #f3f3f3;
-      --ide-header-text: #616161;
-      --ide-fg: #3b3b3b;
-      --ide-cursor: #000000;
-      --ide-selection: #add6ff;
-      --ide-output-bg: #fdfdfd;
-      --ide-output-border: #007acc;
-
-      /* Light Token Colors */
-      --token-comment: #008000;
-      --token-keyword: #0000ff;
-      --token-string: #a31515;
-      --token-number: #098658;
-      --token-class: #267f99;
-      --token-function: #795e26;
-      --token-variable: #001080;
-      --token-operator: #333333;
-      --token-punctuation: #333333;
-      --token-boolean: #0000ff;
-    }
-
-    /* === 2. 深色模式 (Dark Mode) === */
-    /* 关键修正：直接在 html.dark 上重写变量，而不是找子元素 */
-    
-    html.dark, 
-    html[data-theme="dark"],
-    body.dark,
-    .dark {
-      --ide-bg: #1e1e1e;
-      --ide-border: #333333;
-      --ide-header-bg: #252526;
-      --ide-header-text: #cccccc;
-      --ide-fg: #d4d4d4;
-      --ide-cursor: #ffffff;
-      --ide-selection: #264f78;
-      --ide-output-bg: #1e1e1e;
-      --ide-output-border: #007acc;
-
-      /* Dark Token Colors */
-      --token-comment: #6a9955;
-      --token-keyword: #569cd6;
-      --token-string: #ce9178;
-      --token-number: #b5cea8;
-      --token-class: #4ec9b0;
-      --token-function: #dcdcaa;
-      --token-variable: #9cdcfe;
-      --token-operator: #d4d4d4;
-      --token-punctuation: #d4d4d4;
-      --token-boolean: #569cd6;
-    }
-
-    /* 系统级深色偏好 (作为补充) */
-    @media (prefers-color-scheme: dark) {
-      /* 当 html 没有被显式强制为 light 时生效 */
-      html:not(.light):not([data-theme="light"]) {
-        --ide-bg: #1e1e1e;
-        --ide-border: #333333;
-        --ide-header-bg: #252526;
-        --ide-header-text: #cccccc;
-        --ide-fg: #d4d4d4;
-        --ide-cursor: #ffffff;
-        --ide-selection: #264f78;
-        --ide-output-bg: #1e1e1e;
-        --ide-output-border: #007acc;
-
-        --token-comment: #6a9955; --token-keyword: #569cd6; --token-string: #ce9178; --token-number: #b5cea8; --token-class: #4ec9b0; --token-function: #dcdcaa; --token-variable: #9cdcfe; --token-operator: #d4d4d4; --token-punctuation: #d4d4d4; --token-boolean: #569cd6;
-      }
-    }
-
-    /* === PrismJS 通用设置 === */
-    code[class*="language-"], pre[class*="language-"] {
-      color: var(--ide-fg);
-      text-shadow: none;
-      font-family: var(--code-font-stack) !important;
-      direction: ltr;
-      text-align: left;
-      white-space: pre;
-      line-height: 1.6;
-      tab-size: 4;
-      /* 颜色平滑过渡 */
-      transition: color 0.3s, background-color 0.3s, border-color 0.3s;
-    }
-
-    /* Token 映射 */
-    .token.comment, .token.prolog { color: var(--token-comment); font-style: italic; }
-    .token.punctuation { color: var(--token-punctuation); }
-    .token.property, .token.tag, .token.constant, .token.symbol { color: var(--token-variable); }
-    .token.boolean { color: var(--token-boolean); }
-    .token.number { color: var(--token-number); }
-    .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: var(--token-string); }
-    .token.operator, .token.entity, .token.url { color: var(--token-operator); }
-    .token.atrule, .token.attr-value, .token.keyword { color: var(--token-keyword); font-weight: bold;}
-    .token.function, .token.class-name { color: var(--token-function); }
-    .token.regex, .token.important, .token.variable { color: var(--token-variable); }
-
-    /* Hugo 静态代码块修复 */
-    .highlight pre {
-      background-color: var(--ide-bg) !important;
-      border: 1px solid var(--ide-border);
-      border-radius: 6px;
-      color: var(--ide-fg);
-      transition: background-color 0.3s, border-color 0.3s;
-    }
-  </style>
 {{ end }}
 
-
+<!-- === 5. 宽屏适配 (Docs) === -->
 {{ if eq .Type "docs" }}
 <style>
-  /* =========================================
-     1. 解锁页面主容器 (Container)
-     ========================================= */
   @media (min-width: 1200px) {
-    /* 针对大屏幕，让容器占据 95% 的视口宽度 */
-    .container, .mx-auto {
-      max-width: 95vw !important; 
-      padding-left: 2rem !important;
-      padding-right: 2rem !important;
-    }
+    .container, .mx-auto { max-width: 95vw !important; padding-left: 2rem !important; padding-right: 2rem !important; }
   }
-
-  /* =========================================
-     2. 解锁文章正文 (Prose)
-     ========================================= */
-  /* 打破 65ch 限制 */
-  .prose {
-    max-width: 100% !important;
-    min-width: 100% !important;
-  }
-
-  /* 让正文居中 */
-  .page-body {
-    width: 100% !important;
-  }
-
-  /* =========================================
-     3. 优化代码块和图片
-     ========================================= */
-  /* 让代码块利用全宽 */
-  .prose pre {
-    max-width: 100% !important;
-    margin: 1.5rem 0 !important;
-  }
-
-  /* 图片限制：不让图片无限拉伸，最大 800px 或者 60% */
-  /* 这样截图 1 那种超大图的情况即便在 docs 里出现也会稍微收敛一点 */
-  .prose img {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 80% !important; /* 你可以根据喜好调整这个比例 */
-    height: auto !important;
-  }
+  .prose { max-width: 100% !important; min-width: 100% !important; }
+  .page-body { width: 100% !important; }
+  .prose pre { max-width: 100% !important; margin: 1.5rem 0 !important; }
+  .prose img { margin-left: auto; margin-right: auto; max-width: 80% !important; height: auto !important; }
 </style>
 {{ end }}
