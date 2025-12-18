@@ -1,29 +1,40 @@
 {{ $tracePath := .Get 0 }}
 {{ $userHeight := .Get 1 | default "auto" }}
 
-<div class="stanford-trace-wrapper" style="
+<div id="trace-wrapper-{{ .Ordinal }}" class="stanford-trace-wrapper" style="
     position: relative;
     margin: 2rem 0;
     width: 100%;
     border-radius: 8px;
     overflow: hidden;
-    background: transparent;
+    background: transparent; /* JS 会填充具体颜色 */
     transition: all 0.3s ease;
     border: 1px solid transparent;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 ">
-    <!-- Copy 按钮 -->
-    <button id="trace-copy-{{ .Ordinal }}" onclick="copyTrace('{{ .Ordinal }}')" style="
-        position: absolute; top: 9px; right: 12px; z-index: 50;
-        background: transparent; 
-        border: 1px solid rgba(127,127,127,0.2);
-        color: inherit;
-        padding: 3px 8px; border-radius: 4px; cursor: pointer; 
-        font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600;
-        backdrop-filter: blur(2px);
-        transition: all 0.2s;
-        opacity: 0.6;
-    ">Copy</button>
+    <!-- 按钮组容器 -->
+    <div style="position: absolute; top: 9px; right: 12px; z-index: 50; display: flex; gap: 8px;">
+        
+        <!-- 全屏按钮 (新增) -->
+        <button id="trace-fs-{{ .Ordinal }}" onclick="toggleFullscreen('{{ .Ordinal }}')" style="
+            background: transparent; 
+            border: 1px solid rgba(127,127,127,0.2);
+            color: inherit;
+            padding: 3px 8px; border-radius: 4px; cursor: pointer; 
+            font-family: -apple-system, sans-serif; font-size: 14px; line-height: 1;
+            backdrop-filter: blur(2px); transition: all 0.2s; opacity: 0.6;
+        " title="Toggle Fullscreen">⛶</button>
+
+        <!-- Copy 按钮 -->
+        <button id="trace-copy-{{ .Ordinal }}" onclick="copyTrace('{{ .Ordinal }}')" style="
+            background: transparent; 
+            border: 1px solid rgba(127,127,127,0.2);
+            color: inherit;
+            padding: 3px 8px; border-radius: 4px; cursor: pointer; 
+            font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600;
+            backdrop-filter: blur(2px); transition: all 0.2s; opacity: 0.6;
+        ">Copy</button>
+    </div>
 
     <iframe 
         id="trace-iframe-{{ .Ordinal }}"
@@ -37,29 +48,73 @@
     </iframe>
 </div>
 
+<!-- 
+    全屏样式补丁 
+    注意：:fullscreen 伪类用于控制全屏时的样式
+-->
+<style>
+    /* 当 Wrapper 进入全屏时 */
+    .stanford-trace-wrapper:fullscreen {
+        padding: 20px; /* 给点呼吸空间 */
+        overflow-y: auto; /* 允许垂直滚动 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    
+    /* 全屏时强制 iframe 高度撑满，忽略 JS 计算的高度 */
+    .stanford-trace-wrapper:fullscreen iframe {
+        height: 95vh !important; /* 占据绝大部分屏幕高度 */
+        width: 100% !important;
+        max-width: 1600px; /* 防止在超宽屏上太宽 */
+    }
+
+    /* 针对 Safari 的前缀支持 */
+    .stanford-trace-wrapper:-webkit-full-screen { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+    .stanford-trace-wrapper:-webkit-full-screen iframe { height: 95vh !important; width: 100% !important; }
+</style>
+
 <script>
+// === 全屏切换逻辑 ===
+window.toggleFullscreen = function(id) {
+    const wrapper = document.getElementById('trace-wrapper-' + id);
+    const btn = document.getElementById('trace-fs-' + id);
+    
+    if (!document.fullscreenElement) {
+        // 进入全屏
+        if(wrapper.requestFullscreen) wrapper.requestFullscreen();
+        else if(wrapper.webkitRequestFullscreen) wrapper.webkitRequestFullscreen(); // Safari
+        
+        btn.innerHTML = "✖"; // 变成关闭图标
+        btn.style.borderColor = "#2da44e";
+        btn.style.color = "#2da44e";
+        btn.style.opacity = "1";
+    } else {
+        // 退出全屏
+        if(document.exitFullscreen) document.exitFullscreen();
+        else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+        
+        btn.innerHTML = "⛶"; // 变回全屏图标
+        btn.style.borderColor = "rgba(127,127,127,0.2)";
+        btn.style.color = "inherit";
+        btn.style.opacity = "0.6";
+    }
+};
+
+// === 复制逻辑 (保持不变) ===
 window.copyTrace = function(id) {
     const iframe = document.getElementById('trace-iframe-' + id);
     if(!iframe || !iframe.contentDocument) return;
     const doc = iframe.contentDocument;
-
-    // 1. 找到所有的行元素
     const lineElements = doc.querySelectorAll('.line');
     
     if (lineElements.length > 0) {
         const codeLines = Array.from(lineElements).map(lineEl => {
-            // 策略：.line 内部通常由 [行号, 代码] 组成
-            // 取最后一个子元素作为代码
-            if (lineEl.children.length >= 2) {
-                return lineEl.lastElementChild.innerText;
-            } 
-            const rawText = lineEl.innerText;
-            return rawText.replace(/^\s*\d+/, ''); 
+            if (lineEl.children.length >= 2) return lineEl.lastElementChild.innerText;
+            return lineEl.innerText.replace(/^\s*\d+/, ''); 
         });
-
-        const finalCode = codeLines.join('\n');
-
-        navigator.clipboard.writeText(finalCode).then(() => {
+        navigator.clipboard.writeText(codeLines.join('\n')).then(() => {
             const btn = document.getElementById('trace-copy-' + id);
             const originalText = btn.innerText;
             btn.innerText = "✓";
@@ -69,12 +124,10 @@ window.copyTrace = function(id) {
             setTimeout(() => { 
                 btn.innerText = originalText; 
                 btn.style.color = "inherit"; 
-                btn.style.borderColor = "rgba(127,127,127,0.2)";
+                btn.style.borderColor = "rgba(127,127,127,0.2)"; 
                 btn.style.opacity = "0.6";
             }, 2000);
         });
-    } else {
-        console.warn("Could not find .line elements in iframe");
     }
 };
 
@@ -108,18 +161,21 @@ window.copyTrace = function(id) {
             hl_border: '#d4a72c'
         };
 
+        // 这里的背景色设置非常关键，全屏时浏览器背景默认是黑/白的
+        // 设置到 wrapper 上可以保证全屏时背景色与主题一致
         wrapper.style.backgroundColor = theme.bg;
         wrapper.style.borderColor = theme.border;
-        const btn = document.getElementById('trace-copy-{{ .Ordinal }}');
-        if(btn) btn.style.color = theme.fg;
+        
+        const copyBtn = document.getElementById('trace-copy-{{ .Ordinal }}');
+        const fsBtn = document.getElementById('trace-fs-{{ .Ordinal }}');
+        if(copyBtn) copyBtn.style.color = theme.fg;
+        if(fsBtn) fsBtn.style.color = theme.fg;
 
         const doc = iframe.contentDocument;
         let st = doc.getElementById('hugo-inj');
         if(!st) { st = doc.createElement('style'); st.id='hugo-inj'; doc.head.appendChild(st); }
 
-        // === CSS 注入：核心布局修复 ===
         st.innerHTML = `
-            /* 1. 全局重置 */
             html, body {
                 height: auto !important; min-height: 0 !important;
                 margin: 0 !important; padding: 0 !important;
@@ -128,45 +184,34 @@ window.copyTrace = function(id) {
                 font-family: ${globalFont} !important; 
                 font-size: ${globalSize} !important;
                 line-height: ${globalLineHeight} !important;
-                overflow-x: auto !important; /* 允许 body 横向滚动 */
+                overflow-x: auto !important;
                 overflow-y: hidden !important;
             }
-
-            /* 2. 布局容器修复 (关键) */
-            /* 强制 Flex 容器左对齐，防止小屏下居中导致左侧截断 */
             #root, .trace-viewer-container {
                 display: flex !important;
                 flex-direction: column !important;
-                align-items: flex-start !important; /* 关键：左对齐 */
-                justify-content: flex-start !important; /* 关键：顶部对齐 */
+                align-items: flex-start !important;
+                justify-content: flex-start !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 box-sizing: border-box !important;
             }
-            
-            /* 3. 代码面板容器 */
             .lines-panel {
                 width: 100% !important;
-                overflow-x: auto !important; /* 确保滚动条出现在这里 */
-                padding-bottom: 10px !important; /* 给滚动条留点空间 */
+                overflow-x: auto !important;
+                padding-bottom: 10px !important;
             }
-
-            /* 4. 头部样式 */
             .header {
                 background-color: ${theme.header_bg} !important;
                 border-bottom: 1px solid ${theme.border} !important;
                 padding: 6px 12px !important;
-                display: flex; 
-                align-items: center;
-                width: 100% !important; /* 撑满宽度 */
-                box-sizing: border-box !important;
+                display: flex; align-items: center;
+                width: 100% !important; box-sizing: border-box !important;
                 font-family: -apple-system, sans-serif !important;
                 font-size: 12px !important;
             }
             .header-title { opacity: 0.8; font-weight: 500; }
             .icon-buttons { opacity: 0.6; transform: scale(0.9); }
-            
-            /* 5. 内部样式微调 */
             .lines-content { padding: 8px 0 !important; }
             [class*="bg-yellow-"] {
                 background-color: ${theme.hl_bg} !important;
@@ -188,10 +233,12 @@ window.copyTrace = function(id) {
         const target = iframe.contentDocument.getElementById('root') || iframe.contentDocument.body;
         if (resizeObserver) resizeObserver.disconnect();
         resizeObserver = new ResizeObserver(entries => {
+            // 如果处于全屏模式，不要执行自动高度调整，以免打架
+            if (document.fullscreenElement) return;
+
             for (let entry of entries) {
                 const newHeight = entry.target.scrollHeight;
                 if (Math.abs(iframe.clientHeight - newHeight) > 3) {
-                    // +12px 缓冲，防止出现不必要的垂直滚动条
                     iframe.style.height = (newHeight + 12) + "px";
                 }
             }
@@ -205,5 +252,18 @@ window.copyTrace = function(id) {
     };
     const obs = new MutationObserver(updateTheme);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    
+    // 监听全屏变化，处理退出全屏时的图标复位
+    document.addEventListener('fullscreenchange', () => {
+        const btn = document.getElementById('trace-fs-{{ .Ordinal }}');
+        if (!document.fullscreenElement) {
+            btn.innerHTML = "⛶";
+            btn.style.borderColor = "rgba(127,127,127,0.2)";
+            btn.style.color = "inherit";
+            btn.style.opacity = "0.6";
+            // 退出全屏后立即重新计算一次高度
+            setTimeout(initAutoResize, 100);
+        }
+    });
 })();
 </script>
