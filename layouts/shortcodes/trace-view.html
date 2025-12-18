@@ -1,7 +1,6 @@
 {{ $tracePath := .Get 0 }}
 {{ $userHeight := .Get 1 | default "auto" }}
 
-<!-- Trace View Wrapper -->
 <div class="stanford-trace-wrapper" style="
     position: relative;
     margin: 2rem 0;
@@ -10,10 +9,10 @@
     overflow: hidden;
     background: transparent;
     transition: all 0.3s ease;
-    border: 1px solid transparent; /* 边框由 JS 控制颜色 */
+    border: 1px solid transparent;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 ">
-    <!-- 美化后的 Copy 按钮 (悬浮) -->
+    <!-- Copy 按钮 -->
     <button id="trace-copy-{{ .Ordinal }}" onclick="copyTrace('{{ .Ordinal }}')" style="
         position: absolute; top: 9px; right: 12px; z-index: 50;
         background: transparent; 
@@ -28,7 +27,7 @@
 
     <iframe 
         id="trace-iframe-{{ .Ordinal }}"
-        src="/cs336-viewer/index.html?trace={{ $tracePath | relURL }}" 
+        src='{{ "cs336-viewer/" | relURL }}?trace={{ $tracePath | relURL }}' 
         width="100%" 
         height="200px" 
         scrolling="no"
@@ -39,14 +38,28 @@
 </div>
 
 <script>
-// 1. 复制功能
 window.copyTrace = function(id) {
     const iframe = document.getElementById('trace-iframe-' + id);
-    if(iframe && iframe.contentDocument) {
-        const body = iframe.contentDocument.body;
-        // 尝试找到代码主体
-        const codeBlock = body.querySelector('code') || body.querySelector('pre') || body;
-        navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+    if(!iframe || !iframe.contentDocument) return;
+    const doc = iframe.contentDocument;
+
+    // 1. 找到所有的行元素
+    const lineElements = doc.querySelectorAll('.line');
+    
+    if (lineElements.length > 0) {
+        const codeLines = Array.from(lineElements).map(lineEl => {
+            // 策略：.line 内部通常由 [行号, 代码] 组成
+            // 取最后一个子元素作为代码
+            if (lineEl.children.length >= 2) {
+                return lineEl.lastElementChild.innerText;
+            } 
+            const rawText = lineEl.innerText;
+            return rawText.replace(/^\s*\d+/, ''); 
+        });
+
+        const finalCode = codeLines.join('\n');
+
+        navigator.clipboard.writeText(finalCode).then(() => {
             const btn = document.getElementById('trace-copy-' + id);
             const originalText = btn.innerText;
             btn.innerText = "✓";
@@ -60,6 +73,8 @@ window.copyTrace = function(id) {
                 btn.style.opacity = "0.6";
             }, 2000);
         });
+    } else {
+        console.warn("Could not find .line elements in iframe");
     }
 };
 
@@ -69,49 +84,43 @@ window.copyTrace = function(id) {
     const isAutoHeight = "{{ $userHeight }}" === "auto";
     let resizeObserver = null;
 
-    // 2. 主题更新逻辑 (核心美化)
     function updateTheme() {
         if (!iframe.contentDocument) return;
         
-        // 读取全局字体设置
         const computedStyle = getComputedStyle(document.documentElement);
         const globalFont = computedStyle.getPropertyValue('--global-code-font').trim();
         const globalSize = computedStyle.getPropertyValue('--global-code-size').trim();
         const globalLineHeight = computedStyle.getPropertyValue('--global-line-height').trim();
 
-        // 读取主题颜色 (从 custom_style.html 定义的变量获取)
-        // 为了确保颜色准确，我们手动判断 dark class，因为 iframe 无法直接继承父级变量
         const isDark = document.documentElement.classList.contains('dark') || 
                        document.body.classList.contains('dark') ||
                        document.documentElement.getAttribute('data-theme') === 'dark';
 
-        // 配色方案 (必须与 custom_style.html 对应)
         const theme = isDark ? {
             bg: '#161b22', fg: '#c9d1d9', border: '#30363d',
             header_bg: '#0d1117',
-            hl_bg: 'rgba(187, 128, 9, 0.15)', // 柔和高亮
+            hl_bg: 'rgba(187, 128, 9, 0.15)',
             hl_border: '#d29922'
         } : {
             bg: '#f6f8fa', fg: '#24292e', border: '#d0d7de',
             header_bg: '#ffffff',
-            hl_bg: '#fffbdd', // 柔和高亮
+            hl_bg: '#fffbdd',
             hl_border: '#d4a72c'
         };
 
-        // 应用到外部容器
         wrapper.style.backgroundColor = theme.bg;
         wrapper.style.borderColor = theme.border;
         const btn = document.getElementById('trace-copy-{{ .Ordinal }}');
         if(btn) btn.style.color = theme.fg;
 
-        // 注入内部样式
         const doc = iframe.contentDocument;
         let st = doc.getElementById('hugo-inj');
         if(!st) { st = doc.createElement('style'); st.id='hugo-inj'; doc.head.appendChild(st); }
 
+        // === CSS 注入：核心布局修复 ===
         st.innerHTML = `
-            /* 全局 Reset */
-            html, body, #root {
+            /* 1. 全局重置 */
+            html, body {
                 height: auto !important; min-height: 0 !important;
                 margin: 0 !important; padding: 0 !important;
                 background-color: ${theme.bg} !important;
@@ -119,32 +128,51 @@ window.copyTrace = function(id) {
                 font-family: ${globalFont} !important; 
                 font-size: ${globalSize} !important;
                 line-height: ${globalLineHeight} !important;
+                overflow-x: auto !important; /* 允许 body 横向滚动 */
                 overflow-y: hidden !important;
             }
 
-            /* 头部样式：扁平化，去除老旧风格 */
+            /* 2. 布局容器修复 (关键) */
+            /* 强制 Flex 容器左对齐，防止小屏下居中导致左侧截断 */
+            #root, .trace-viewer-container {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important; /* 关键：左对齐 */
+                justify-content: flex-start !important; /* 关键：顶部对齐 */
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* 3. 代码面板容器 */
+            .lines-panel {
+                width: 100% !important;
+                overflow-x: auto !important; /* 确保滚动条出现在这里 */
+                padding-bottom: 10px !important; /* 给滚动条留点空间 */
+            }
+
+            /* 4. 头部样式 */
             .header {
                 background-color: ${theme.header_bg} !important;
                 border-bottom: 1px solid ${theme.border} !important;
                 padding: 6px 12px !important;
-                display: flex; align-items: center;
+                display: flex; 
+                align-items: center;
+                width: 100% !important; /* 撑满宽度 */
+                box-sizing: border-box !important;
                 font-family: -apple-system, sans-serif !important;
                 font-size: 12px !important;
             }
             .header-title { opacity: 0.8; font-weight: 500; }
             .icon-buttons { opacity: 0.6; transform: scale(0.9); }
-
-            /* 代码区域 */
-            .lines-content { padding: 8px 0 !important; }
             
-            /* 高亮行美化：去除实心，改用柔和背景 */
+            /* 5. 内部样式微调 */
+            .lines-content { padding: 8px 0 !important; }
             [class*="bg-yellow-"] {
                 background-color: ${theme.hl_bg} !important;
                 border-left: 2px solid ${theme.hl_border} !important;
                 box-shadow: none !important;
             }
-
-            /* 强制统一代码字体 */
             pre, code, span { 
                 font-family: ${globalFont} !important; 
                 font-size: ${globalSize} !important;
@@ -155,32 +183,26 @@ window.copyTrace = function(id) {
         else doc.documentElement.classList.remove('dark');
     }
 
-    // 3. 高度自适应 (ResizeObserver)
     function initAutoResize() {
         if (!isAutoHeight || !iframe.contentDocument) return;
         const target = iframe.contentDocument.getElementById('root') || iframe.contentDocument.body;
-        
         if (resizeObserver) resizeObserver.disconnect();
-        
         resizeObserver = new ResizeObserver(entries => {
             for (let entry of entries) {
-                // 使用 scrollHeight 获取真实高度
                 const newHeight = entry.target.scrollHeight;
                 if (Math.abs(iframe.clientHeight - newHeight) > 3) {
-                    iframe.style.height = newHeight + "px";
+                    // +12px 缓冲，防止出现不必要的垂直滚动条
+                    iframe.style.height = (newHeight + 12) + "px";
                 }
             }
         });
         resizeObserver.observe(target);
     }
 
-    // 初始化
     iframe.onload = () => {
         updateTheme();
-        setTimeout(initAutoResize, 100);
+        setTimeout(initAutoResize, 200);
     };
-
-    // 监听主题切换
     const obs = new MutationObserver(updateTheme);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
 })();

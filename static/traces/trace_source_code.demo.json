@@ -1,6 +1,6 @@
 {
   "files": {
-    "trace_source_code/demo.py": "# demo.py\nimport torch\n\ndef main():\n    x = torch.tensor([1.0, 2.0, 3.0])\n    y = x * 2\n    z = y.sum()\n    print(\"Result:\", z)\n\nmain()"
+    "trace_source_code/demo.py": "# demo.py\nimport torch\n\ndef main():\n    x = torch.tensor([1.0, 2.0, 3.0]) # @inspect x\n    y = x * 2 # @inspect y\n    z = y.sum() # @inspect z\n    print(\"Result:\", z)\n\nmain()"
   },
   "steps": [
     {
@@ -23,10 +23,16 @@
           "path": "trace_source_code/demo.py",
           "line_number": 5,
           "function_name": "main",
-          "code": "x = torch.tensor([1.0, 2.0, 3.0])"
+          "code": "x = torch.tensor([1.0, 2.0, 3.0]) # @inspect x"
         }
       ],
-      "env": {},
+      "env": {
+        "x": [
+          1.0,
+          2.0,
+          3.0
+        ]
+      },
       "renderings": [],
       "stdout": "",
       "stderr": ""
@@ -37,10 +43,21 @@
           "path": "trace_source_code/demo.py",
           "line_number": 6,
           "function_name": "main",
-          "code": "y = x * 2"
+          "code": "y = x * 2 # @inspect y"
         }
       ],
-      "env": {},
+      "env": {
+        "x": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "y": [
+          2.0,
+          4.0,
+          6.0
+        ]
+      },
       "renderings": [],
       "stdout": "",
       "stderr": ""
@@ -51,10 +68,22 @@
           "path": "trace_source_code/demo.py",
           "line_number": 7,
           "function_name": "main",
-          "code": "z = y.sum()"
+          "code": "z = y.sum() # @inspect z"
         }
       ],
-      "env": {},
+      "env": {
+        "x": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "y": [
+          2.0,
+          4.0,
+          6.0
+        ],
+        "z": 12.0
+      },
       "renderings": [],
       "stdout": "",
       "stderr": ""
@@ -68,7 +97,19 @@
           "code": "print(\"Result:\", z)"
         }
       ],
-      "env": {},
+      "env": {
+        "x": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "y": [
+          2.0,
+          4.0,
+          6.0
+        ],
+        "z": 12.0
+      },
       "renderings": [],
       "stdout": "",
       "stderr": ""
