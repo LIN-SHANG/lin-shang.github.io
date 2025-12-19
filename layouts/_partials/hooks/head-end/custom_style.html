@@ -20,7 +20,7 @@
   :root {
     /* 字体与字号 */
     --global-code-font: 'Fira Code', 'Consolas', 'Menlo', 'LXGW WenKai Lite', monospace;
-    --global-code-size: 14.5px;
+    --global-code-size: 16px;
     --global-line-height: 1.6;
 
     /* Light Mode */
@@ -150,6 +150,13 @@
   code[class*="language-"], pre[class*="language-"] {
     text-shadow: none; direction: ltr; text-align: left; white-space: pre; tab-size: 4;
   }
+  /* 强制所有代码容器及其内部元素（Token）使用统一变量 */
+  pre, code, .token, .chroma, .py-editor, .py-editor * {
+    font-family: var(--global-code-font) !important;
+    font-size: var(--global-code-size) !important;
+    line-height: var(--global-line-height) !important;
+  }
+  
 </style>
 
 <!-- === 4. PyScript 依赖 === -->

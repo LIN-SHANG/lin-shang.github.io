@@ -1,30 +1,48 @@
-<!-- Py-IDE: 统一字体版 -->
+<!-- Py-IDE: 功能修复版 (安装库 + 变量树 + 统一字体) -->
 <style>
   /* 1. 继承全局变量 */
   .py-ide-wrapper {
     /* 引用 custom_style.html 定义的全局字体 */
-    --ide-font: var(--global-code-font);
-    --ide-size: var(--global-code-size);
-    --ide-lh: var(--global-line-height);
+    --ide-font: var(--global-code-font, monospace);
+    --ide-size: var(--global-code-size, 14.5px);
+    --ide-lh: var(--global-line-height, 1.6);
 
-    /* 按钮颜色 */
+    /* 默认浅色配色 */
+    --ide-bg: #ffffff;
+    --ide-fg: #24292e;
+    --ide-border: #d0d7de;
+    --ide-header-bg: #f6f8fa;
     --ide-btn-run: #2da44e;
     --ide-btn-text: #ffffff;
     --ide-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+    /* 变量树颜色 */
+    --tree-key: #005cc5;
+    --tree-val: #032f62;
+    --tree-type: #6a737d;
   }
 
   /* 深色模式适配 */
   :root[data-theme="dark"] .py-ide-wrapper,
   html.dark .py-ide-wrapper, 
   body.dark .py-ide-wrapper {
-    --ide-btn-run: #A9DC76;
-    --ide-btn-text: #000000;
+    --ide-bg: #161b22;
+    --ide-fg: #d4d4d4;
+    --ide-border: #30363d;
+    --ide-header-bg: #0d1117;
+    --ide-btn-run: #238636;
+    --ide-btn-text: #ffffff;
     --ide-shadow: 0 8px 24px rgba(0,0,0,0.5);
+
+    /* 变量树深色 */
+    --tree-key: #79c0ff;
+    --tree-val: #a5d6ff;
+    --tree-type: #8b949e;
   }
 
   /* 2. 容器样式 */
   .py-ide-container {
-    background-color: var(--ide-bg); /* 来自全局变量 */
+    background-color: var(--ide-bg);
     color: var(--ide-fg);
     border: 1px solid var(--ide-border);
     border-radius: 8px;
@@ -41,7 +59,7 @@
     font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 600; color: var(--ide-fg);
   }
 
-  /* 3. 编辑器 & 输出: 强制使用全局字体 */
+  /* 3. 编辑器 & 输出 */
   .py-editor { 
     min-height: 200px; padding: 15px; 
     font-family: var(--ide-font) !important; 
@@ -54,26 +72,36 @@
     padding: 10px 15px; border-top: 1px solid var(--ide-border); 
     background-color: rgba(127,127,127,0.05); color: var(--ide-fg);
     font-family: var(--ide-font) !important; 
-    font-size: 13px; /* 输出区保持略小 */
+    font-size: 13px; 
     white-space: pre-wrap; max-height: 250px; overflow-y: auto;
   }
 
-  /* 按钮样式 */
+  /* 4. 布局与按钮 */
   .py-main-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid var(--ide-border); }
-  .py-sidebar-col { width: 260px; border-left: 1px solid var(--ide-border); display: flex; flex-direction: column; font-size: 13px;}
+  .py-sidebar-col { width: 260px; border-left: 1px solid var(--ide-border); display: flex; flex-direction: column; font-size: 13px; font-family: var(--ide-font); }
   .py-btn-group { display: flex; gap: 8px; align-items: center; }
   .py-run-btn { 
     background: var(--ide-btn-run) !important; color: var(--ide-btn-text) !important; 
-    border: none; padding: 5px 16px; border-radius: 4px; cursor: pointer; 
-    font-weight: 800; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-    transition: transform 0.1s;
+    border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; 
+    font-weight: 600; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+    transition: transform 0.1s, opacity 0.2s;
   }
   .py-run-btn:active { transform: translateY(1px); }
   .py-icon-btn { 
     background: transparent; color: var(--ide-fg); border: 1px solid var(--ide-border); 
     padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; 
   }
-  .py-tree-container { padding: 10px; flex: 1; overflow-y: auto; }
+
+  /* 5. 变量树样式 (恢复) */
+  .py-tree-container { padding: 10px; flex: 1; overflow-y: auto; line-height: 1.5; }
+  .t-node { margin-left: 10px; }
+  .t-key { color: var(--tree-key); font-weight: bold; }
+  .t-val { color: var(--tree-val); }
+  .t-type { color: var(--tree-type); font-size: 0.85em; margin-left: 5px; font-style: italic; }
+  .t-arrow { display: inline-block; width: 12px; cursor: pointer; opacity: 0.7; font-size: 10px; user-select: none; }
+  .t-children { display: none; border-left: 1px solid var(--ide-border); margin-left: 5px; padding-left: 5px; }
+  .t-children.open { display: block; }
+  
   .py-plot-container { background: white; padding: 15px; text-align: center; border-top: 1px solid var(--ide-border); display: none; }
 </style>
 
@@ -84,6 +112,7 @@
 
 <div class="py-ide-wrapper">
     <div class="py-ide-container">
+        <!-- 主编辑区 -->
         <div class="py-main-col">
             <div class="py-header">
                 <span>TERMINAL</span>
@@ -103,6 +132,7 @@
             <div class="py-plot-container" id="plot-{{ .Ordinal }}"></div>
         </div>
 
+        <!-- 侧边栏 (变量树) -->
         <div class="py-sidebar-col">
             <div class="py-header">VARIABLES</div>
             <div id="tree-{{ .Ordinal }}" class="py-tree-container"></div>
@@ -113,13 +143,59 @@
 <script type="module">
     import { CodeJar } from 'https://cdn.jsdelivr.net/npm/codejar@3.7.0/codejar.min.js';
 
+    // 1. 变量树渲染器 (恢复 JS 逻辑)
+    window.renderJsonTree = function(id, jsonStr) {
+        const container = document.getElementById(id);
+        if(!container) return;
+        
+        let data = {};
+        try { data = JSON.parse(jsonStr); } catch(e) { return; }
+
+        if (Object.keys(data).length === 0) {
+            container.innerHTML = '<div style="color:var(--tree-type); padding:5px;">(Empty)</div>';
+            return;
+        }
+
+        const buildTree = (obj) => {
+            let html = '';
+            for (const [key, info] of Object.entries(obj)) {
+                const hasChild = info.children !== null;
+                const arrow = hasChild ? '▶' : ' ';
+                const val = info.val;
+                const type = info.type;
+                
+                // 递归构建子节点
+                const childHtml = hasChild ? `<div class="t-children">${buildTree(info.children)}</div>` : '';
+                
+                html += `
+                    <div class="t-node">
+                        <span class="t-arrow" onclick="toggleTree(this)">${arrow}</span>
+                        <span class="t-key">${key}</span>: 
+                        <span class="t-val">${val}</span>
+                        <span class="t-type">${type}</span>
+                        ${childHtml}
+                    </div>`;
+            }
+            return html;
+        };
+        container.innerHTML = buildTree(data);
+    };
+
+    // 树的折叠/展开辅助函数
+    window.toggleTree = function(el) {
+        const children = el.parentElement.querySelector('.t-children');
+        if (children) {
+            const isOpen = children.classList.toggle('open');
+            el.innerText = isOpen ? '▼' : '▶';
+        }
+    };
+
     window.copyIdeCode = function(ordinal) {
         const el = document.getElementById(`editor-${ordinal}`);
         if(el) {
             navigator.clipboard.writeText(el.innerText).then(() => {
                 const btn = document.getElementById(`copy-code-${ordinal}`);
-                const old = btn.innerText;
-                btn.innerText = "✓";
+                const old = btn.innerText; btn.innerText = "✓";
                 setTimeout(() => { btn.innerText = old; }, 1500);
             });
         }
@@ -149,8 +225,8 @@
                 document.getElementById("btn-{{ .Ordinal }}").click();
             }
         });
-
-        // Plot Copy
+        
+        // Plot Copy Logic
         const copyBtn = document.getElementById("copy-png-btn-{{ .Ordinal }}");
         if(copyBtn) {
             copyBtn.onclick = () => {
@@ -168,9 +244,7 @@
                     ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width,canvas.height);
                     ctx.drawImage(img, 0,0,canvas.width,canvas.height);
                     canvas.toBlob(b => navigator.clipboard.write([new ClipboardItem({'image/png':b})]));
-                    const old = copyBtn.innerText;
-                    copyBtn.innerText = "Copied!";
-                    setTimeout(() => copyBtn.innerText = old, 1500);
+                    alert("Plot copied!");
                 };
             };
         }
@@ -179,7 +253,7 @@
 
 <script type="py" config='{"packages": ["micropip", "numpy", "matplotlib"]}'>
     from pyscript import window, document
-    import sys, io, micropip, asyncio, html, json
+    import sys, io, micropip, asyncio, html, json, types
 
     if 'kernels' not in globals(): kernels = {}
     kernels[{{ .Ordinal }}] = {}
@@ -191,13 +265,38 @@
             if el: el.innerText += text; el.scrollTop = el.scrollHeight
         def flush(self): pass
 
+    # 2. 变量树生成器 (恢复 Python 逻辑)
     def get_scope_tree(scope):
-        data = {}
+        tree_data = {}
+        def safe_str(v):
+            try: s = str(v)
+            except: s = "<error>"
+            return html.escape(s[:50] + "..." if len(s) > 50 else s)
+            
         for k, v in scope.items():
-            if k.startswith("_") or hasattr(v, '__call__') or type(v).__name__ == 'module': continue
-            val_str = str(v)[:50]
-            data[k] = {"val": html.escape(val_str), "type": type(v).__name__}
-        return json.dumps(data)
+            # 过滤系统变量
+            if k.startswith("_") or k in ['open', 'exit', 'quit', 'In', 'Out', 'get_ipython', 'show_plot', 'matplotlib', 'plt', 'micropip', 'fm', 'pyfetch', 'os', 'sys', 'io', 'html', 'json', 'types', 'asyncio', 'DOMStream', 'kernels', 'get_scope_tree']: continue
+            if isinstance(v, (types.ModuleType, types.FunctionType, type)): continue
+            
+            val_type = type(v).__name__
+            children = None
+            display_val = safe_str(v)
+            
+            # 处理 List/Dict 嵌套
+            if isinstance(v, dict):
+                children = {}
+                display_val = f"dict[{len(v)}]"
+                for sk, sv in list(v.items())[:20]:
+                    children[str(sk)] = {"val": safe_str(sv), "type": type(sv).__name__, "children": None}
+            elif isinstance(v, (list, tuple)):
+                children = {}
+                display_val = f"{val_type}[{len(v)}]"
+                for i, sv in enumerate(v[:20]):
+                    children[str(i)] = {"val": safe_str(sv), "type": type(sv).__name__, "children": None}
+                    
+            tree_data[k] = {"val": display_val, "type": val_type, "children": children}
+            
+        return json.dumps(tree_data)
 
     def _show_plot():
         import matplotlib.pyplot as plt
@@ -221,12 +320,30 @@
         btn = document.getElementById("btn-{{ .Ordinal }}")
         out = document.getElementById("output-{{ .Ordinal }}")
         editor = document.getElementById("editor-{{ .Ordinal }}")
+        
         btn.disabled = True
-        btn.innerText = "Running..."
+        btn.innerText = "..."
         out.innerText = ""
         
+        # 获取代码
         code = window.getSelection().toString()
         if not code.strip(): code = editor.textContent
+        
+        # --- 优化后的安装包逻辑 ---
+        # 扫描代码中的所有行，寻找以 # install: 开头的行
+        lines = code.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line.startswith("# install:"):
+                pkgs = [p.strip() for p in line.replace("# install:", "").split(",") if p.strip()]
+                if pkgs:
+                    out.innerText += f"> 正在安装依赖: {', '.join(pkgs)}...\n"
+                    try:
+                        await micropip.install(pkgs)
+                        out.innerText += "> 安装成功！\n"
+                    except Exception as err:
+                        out.innerText += f"> 安装失败: {err}\n"
+        # -----------------------
         
         scope = kernels[{{ .Ordinal }}]
         if "show_plot" not in scope: scope["show_plot"] = _show_plot
@@ -237,15 +354,18 @@
         
         try:
             await asyncio.sleep(0.1)
+            # 执行代码
             exec(code, scope, scope)
         except Exception as err:
             print(f"Error: {err}")
         finally:
             sys.stdout = sys.__stdout__
+            # 渲染变量树
             try:
                 tree = get_scope_tree(scope)
                 window.renderJsonTree("tree-{{ .Ordinal }}", tree)
             except: pass
+            
             btn.disabled = False
             btn.innerText = "▶ RUN"
 </script>

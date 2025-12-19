@@ -176,6 +176,15 @@ function TraceViewer() {
     <div
       className="trace-viewer-container"
       onMouseDown={handleMouseDown}
+      // === 修改 1: 强制 Flex 布局左对齐，修复截断 ===
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start', // 关键！
+        justifyContent: 'flex-start',
+        width: '100%',
+        minHeight: '100vh' // 撑满高度
+      }}
     >
       <div className="lines-panel">{renderedLines}</div>
       <div
@@ -184,6 +193,11 @@ function TraceViewer() {
           left: envPosition.x,
           top: envPosition.y,
           cursor: isDragging ? 'grabbing' : 'grab',
+          // === 修改 2: 绑定 CSS 变量，适配深色模式 ===
+          backgroundColor: 'var(--scope-bg)', 
+          color: 'var(--scope-text)',
+          border: '1px solid var(--scope-border)',
+          boxShadow: 'var(--scope-shadow)'
         }}
       >
         {renderedEnv}
@@ -417,13 +431,15 @@ function makeProgressBar(currentStepIndex, totalSteps) {
     <div title={stepProgress} style={{
       width: '100%',
       height: '4px',
-      backgroundColor: 'lightgray',
+      // === 修改 4: 使用半透明白/黑，自动适配背景 ===
+      backgroundColor: 'var(--border-color, rgba(127,127,127,0.3))', 
       marginTop: '4px',
     }}>
       <div style={{
         width: `${progressPercentage}%`,
         height: '100%',
-        backgroundColor: '#4CAF50',
+        // 使用高亮色变量，或者保持绿色但稍微暗一点
+        backgroundColor: 'var(--highlight-border, #4CAF50)', 
         transition: 'width 0.2s ease-out'
       }}/>
     </div>
@@ -497,7 +513,13 @@ function renderLines({trace, currentPath, currentLineNumber, currentStepIndex, t
     }
 
     return (
-      <div key={index} className={lineClass.join(" ")} ref={isCurrentLine ? scrollIntoViewIfNeeded : null}>
+      <div 
+        key={index} 
+        className={lineClass.join(" ")} 
+        ref={isCurrentLine ? scrollIntoViewIfNeeded : null}
+        // === 修改 3: 让高亮行颜色跟随主题 ===
+        style={isCurrentLine ? { backgroundColor: 'var(--highlight-bg)' } : {}}
+      >
         {lineNumberSpan}
         {renderedItemsSpan}
       </div>

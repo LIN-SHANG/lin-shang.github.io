@@ -1,194 +1,131 @@
+/* src/index.css */
+
+/* =========================================
+   1. 主题变量定义 (Theming)
+   ========================================= */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  color: #213547;
-  background-color: #ffffff;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* 全局字体 (与你博客保持一致) */
+  --font-stack: "Fira Code", "Consolas", system-ui, sans-serif;
+
+  /* === Light Mode (默认) === */
+  --bg-color: #ffffff;
+  --text-color: #24292e;
+  --link-color: #0969da;
+  --border-color: #d0d7de;
+  --icon-color: #57606a;
+
+  /* 头部背景 */
+  --header-bg: rgba(255, 255, 255, 0.95);
+
+  /* 代码高亮行 (柔和黄) */
+  --highlight-bg: #fffbdd;
+  --highlight-border: #d4a72c;
+
+  /* 变量探查框 (Env Panel) - 修复原来的亮青色 */
+  --env-bg: #ffffff;
+  --env-text: #24292e;
+  --env-border: #d0d7de;
+  --env-shadow: 0 8px 24px rgba(140, 149, 159, 0.2);
 }
+
+/* === Dark Mode (深色模式) === */
+/* 只要 html 或 body 有 .dark 类，这些变量就会生效 */
+:root.dark {
+  --bg-color: #0d1117;
+  --text-color: #c9d1d9;
+  --link-color: #58a6ff;
+  --border-color: #30363d;
+  --icon-color: #8b949e;
+
+  /* 头部背景 */
+  --header-bg: rgba(13, 17, 23, 0.95);
+
+  /* 代码高亮行 (暗金透明) */
+  --highlight-bg: rgba(187, 128, 9, 0.15);
+  --highlight-border: #d29922;
+
+  /* 变量探查框 (深灰卡片) */
+  --env-bg: #161b22;
+  --env-text: #e6edf3;
+  --env-border: #30363d;
+  --env-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================
+   2. 全局重置与基础样式
+   ========================================= */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  width: 100%; /* 改为 100% */
+  
+  /* 关键修改：千万不要写 100vh，改为 auto 或 min-content */
+  min-height: auto; 
+  height: auto;
+  
+  overflow-x: auto;
+  overflow-y: hidden; /* 让外部 iframe 处理垂直滚动，内部禁止 */
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  
+  /* 关键修改：确保容器也是自动高度 */
+  height: auto;
+  min-height: 0;
+}
+
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--link-color);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  text-decoration: underline;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+/* =========================================
+   3. 布局修复 (Layout Fixes)
+   ========================================= */
 
-.icon-buttons {
-  float: right;
-}
-
-.icon-buttons button {
-  cursor: pointer;
-  border: none;
-  padding: 2px;
-}
-
-button {
-  background-color: #f9f9f9;
-}
-
-.key {
-  font-weight: bold;
-}
-
-.code-container {
-  font-family: monospace;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.current-line {
-  background-color: #FFFFCC;
-}
-
-.line-number {
-  min-width: 3em;  /* Width for up to 3 digits */
-  padding-right: 1em;
-  text-align: right;
-  user-select: none;  /* Prevent selection of line numbers */
-  display: inline-block;
-  color: lightgray;
-  cursor: pointer;
-}
-
-.line-number:hover {
-  color: black;
-}
-
-.line span {
-  vertical-align: top;
-}
-
-.markdown h1 {
-  margin: 0;
-  padding: 0;
-  line-height: inherit;
-  display: inline-block;
-}
-
-.markdown h2 {
-  margin: 0;
-  padding: 0;
-  line-height: inherit;
-  display: inline-block;
-}
-
-.markdown ul {
-  margin: 0;
-  padding: 0;
-  line-height: inherit;
-  display: inline-block;
-  list-style-position: inside;
-  list-style-type: disc;
-}
-
-.markdown ol {
-  margin: 0;
-  padding-left: 17px;
-  line-height: inherit;
-  display: inline-block;
-}
-
-.link-container {
-  display: inline-block;
-  position: relative;
-}
-
-.link-hover-panel {
-  display: none;
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 600px;
-  padding: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  z-index: 1000;
-}
-
-.link-container:hover .link-hover-panel {
-  display: block;
-}
-
-.link-title {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.link-authors {
-  color: #666;
-  margin-bottom: 2px;
-}
-
-.link-date {
-  color: #666;
-  font-size: 0.9em;
-  margin-bottom: 4px;
-}
-
-.link-description {
-  font-size: 0.9em;
-  line-height: 1.4;
-}
-
-.link-notes {
-  color: gray;
-  font-size: 0.9em;
-  line-height: 1.4;
-}
-
+/* 最大的容器 */
 .trace-viewer-container {
   display: flex;
-  justify-content: center;
-  gap: 50px;
+  /* 
+     关键修改：
+     原版是 justify-content: center; 这导致小屏下左侧被切掉。
+     改为 flex-start (左对齐) 并撑满宽度。
+  */
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  padding: 0 10px; /* 给点左右边距 */
+  box-sizing: border-box;
 }
 
+/* 代码行面板 */
 .lines-panel {
   flex: 1;
   position: relative;
-  min-width: 1000px;
-  overflow-x: auto;
+  /* 原版 min-width: 1000px 太宽了，会导致 iframe 永远有滚动条 */
+  /* 改为 auto 或 fit-content，让它自然撑开 */
+  min-width: auto; 
+  width: 100%;
+  overflow-x: visible; /* 让父容器处理滚动 */
 }
 
-.renderings {
-  display: inline-block;
-  width: 800px;
-}
-
-.env-panel {
-  position: fixed;
-  overflow-y: auto;
-  z-index: 1000;
-  max-height: 90vh;
-}
-
-.env {
-  border: 1px solid black;
-  background-color: #dfffff;
-  min-width: 500px;
-  max-width: 500px;
-  min-height: 100px;
-  border-radius: 8px;
-  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-}
-
-.env td {
-  vertical-align: top;
-}
+/* =========================================
+   4. 组件样式 (Components)
+   ========================================= */
 
 .header {
   display: flex;
@@ -196,14 +133,93 @@ button {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: white;
-  padding: 20px 0;
+  background-color: var(--header-bg); /* 跟随主题 */
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 0;
+  backdrop-filter: blur(8px); /* 毛玻璃效果 */
 }
 
 .header-title {
   flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
 }
 
-.cloaked {
-  opacity: 0.2;
+.icon-buttons button {
+  cursor: pointer;
+  border: none;
+  padding: 4px 6px;
+  margin-left: 4px;
+  background-color: transparent;
+  color: var(--icon-color);
+  border-radius: 4px;
+  font-size: 1.1em;
+  transition: all 0.2s;
 }
+
+.icon-buttons button:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+/* 代码行样式 */
+.current-line {
+  /* 使用变量，支持深色模式 */
+  background-color: var(--highlight-bg);
+  border-left: 3px solid var(--highlight-border); /* 增加左侧指示线 */
+}
+
+.line-number {
+  min-width: 3em;
+  padding-right: 1em;
+  text-align: right;
+  user-select: none;
+  display: inline-block;
+  color: var(--icon-color); /* 变暗一点 */
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.line-number:hover {
+  opacity: 1;
+  color: var(--text-color);
+}
+
+/* 变量探查框 (Env Panel) */
+.env-panel {
+  position: fixed; /* 保持 fixed，以便拖动 */
+  overflow-y: auto;
+  z-index: 1000;
+  max-height: 90vh;
+}
+
+.env {
+  /* 彻底重写样式，适配深色模式 */
+  border: 1px solid var(--env-border);
+  background-color: var(--env-bg);
+  color: var(--env-text);
+  box-shadow: var(--env-shadow);
+  
+  min-width: 300px; /* 稍微改小一点最小值，防止太占地 */
+  max-width: 600px;
+  min-height: 50px;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+/* 其他辅助样式保持不变，但使用变量 */
+.code-container {
+  font-family: var(--font-stack);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.key { font-weight: bold; color: var(--link-color); }
+
+.cloaked { opacity: 0.2; }
+
+/* Markdown 样式微调 */
+.markdown h1, .markdown h2 { display: inline-block; font-size: 1.1em; font-weight: bold; }
