@@ -1,0 +1,10 @@
+<figure class="epigraph">
+  <blockquote>
+    {{ .Inner | markdownify }}
+  </blockquote>
+  {{ with .Get "author" }}
+  <figcaption>
+    <cite>— {{ . }}{{ with $.Get "source" }}, <em>{{ . }}</em>{{ end }}</cite>
+  </figcaption>
+  {{ end }}
+</figure>

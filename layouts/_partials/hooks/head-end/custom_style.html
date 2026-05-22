@@ -168,8 +168,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 {{ end }}
 
-<!-- === 5. 宽屏适配 (Docs) === -->
-{{ if eq .Type "docs" }}
+<!-- === 5. 宽屏适配 (Docs, 排除 reading-section) === -->
+{{ if and (eq .Type "docs") (not .Params.reading_section) }}
 <style>
   @media (min-width: 1200px) {
     .container, .mx-auto { max-width: 95vw !important; padding-left: 2rem !important; padding-right: 2rem !important; }
@@ -179,4 +179,338 @@
   .prose pre { max-width: 100% !important; margin: 1.5rem 0 !important; }
   .prose img { margin-left: auto; margin-right: auto; max-width: 80% !important; height: auto !important; }
 </style>
+{{ end }}
+
+<!-- === 6. Reading Section (文学阅读空间) === -->
+{{ if .Params.reading_section }}
+<!-- EB Garamond 字体 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<style>
+  /* --- 6.1 Reading Palette --- */
+  :root {
+    --reading-bg: #faf6f0;
+    --reading-fg: #3d3329;
+    --reading-accent: #a0522d;
+    --reading-accent-light: #c87941;
+    --reading-muted: #8c7b6b;
+    --reading-border: #e6ddd3;
+    --reading-surface: #f5efe7;
+    --reading-dropcap: #a0522d;
+  }
+  .dark {
+    --reading-bg: #1a1f2e;
+    --reading-fg: #e8e4df;
+    --reading-accent: #c4a35a;
+    --reading-accent-light: #d4b76a;
+    --reading-muted: #9a958f;
+    --reading-border: #2d3347;
+    --reading-surface: #212738;
+    --reading-dropcap: #c4a35a;
+  }
+
+  /* --- 6.2 Global Page Atmosphere --- */
+  html[data-reading] {
+    --color-background: var(--reading-bg) !important;
+    --color-foreground: var(--reading-fg) !important;
+    --color-header-fg: var(--reading-fg) !important;
+    background-color: var(--reading-bg) !important;
+  }
+  html[data-reading] body,
+  html[data-reading] #page-bg,
+  html[data-reading] .page-wrapper {
+    background-color: var(--reading-bg) !important;
+    background: var(--reading-bg) !important;
+  }
+  /* Navbar: unified color & font */
+  html[data-reading] .page-header,
+  html[data-reading] header,
+  html[data-reading] .header {
+    background-color: var(--reading-bg) !important;
+    border-bottom: 1px solid var(--reading-border) !important;
+  }
+  html[data-reading] .navbar-brand,
+  html[data-reading] .nav-link,
+  html[data-reading] header a,
+  html[data-reading] header button {
+    font-family: 'EB Garamond', 'LXGW WenKai Lite', Georgia, serif !important;
+    color: var(--reading-fg) !important;
+  }
+  html[data-reading] .nav-link:hover,
+  html[data-reading] header a:hover {
+    color: var(--reading-accent) !important;
+  }
+  /* Paper texture overlay */
+  html[data-reading]::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  }
+  html[data-reading].dark::after { opacity: 0.015; }
+
+  /* --- 6.3 Layout: Override Theme Widths --- */
+  html[data-reading] article {
+    justify-content: center !important;
+  }
+  html[data-reading] main.prose {
+    max-width: 56rem !important;
+    font-size: 1rem !important;
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+    padding-top: 2.5rem !important;
+  }
+  /* Content area: comfortable reading width */
+  html[data-reading] .prose .content {
+    max-width: 48rem;
+  }
+
+  /* --- 6.4 Typography: Core --- */
+  html[data-reading] .prose,
+  html[data-reading] .prose p,
+  html[data-reading] .prose li,
+  html[data-reading] .prose blockquote {
+    font-family: 'LXGW WenKai Lite', 'EB Garamond', Georgia, 'Noto Serif SC', serif !important;
+    color: var(--reading-fg) !important;
+    line-height: 2 !important;
+    letter-spacing: 0.04em;
+  }
+  html[data-reading] .prose {
+    font-size: 1.05rem !important;
+  }
+
+  /* Paragraph spacing & indent */
+  html[data-reading] .prose .content > p {
+    text-indent: 2em;
+    margin-top: 0.4em !important;
+    margin-bottom: 1.2em !important;
+  }
+  /* No indent for first para after headings/blockquotes */
+  html[data-reading] .prose .content > blockquote + p {
+    text-indent: 0;
+  }
+
+  /* --- 6.5 Headings --- */
+  html[data-reading] .prose h1 {
+    font-family: 'EB Garamond', 'LXGW WenKai Lite', Georgia, serif !important;
+    font-size: 1.75rem !important;
+    font-weight: 400 !important;
+    color: var(--reading-fg) !important;
+    letter-spacing: 0.08em;
+    text-align: center;
+    margin-top: 1rem !important;
+    margin-bottom: 2.5rem !important;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--reading-border);
+  }
+  html[data-reading] .prose h2 {
+    font-family: 'EB Garamond', 'LXGW WenKai Lite', Georgia, serif !important;
+    font-size: 1.3rem !important;
+    font-weight: 500 !important;
+    color: var(--reading-accent) !important;
+    letter-spacing: 0.05em;
+    margin-top: 3rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+  html[data-reading] .prose h3,
+  html[data-reading] .prose h4 {
+    font-family: 'LXGW WenKai Lite', 'EB Garamond', serif !important;
+    color: var(--reading-fg) !important;
+    font-weight: 500 !important;
+  }
+
+  /* --- 6.6 Blockquotes (Epigraph feel) --- */
+  html[data-reading] .prose blockquote {
+    border-left: 2px solid var(--reading-accent) !important;
+    background: transparent !important;
+    padding: 0.5em 1.5em !important;
+    margin: 2.5rem 1rem !important;
+    font-style: italic;
+    font-size: 0.95em !important;
+    color: var(--reading-muted) !important;
+    text-indent: 0 !important;
+  }
+  html[data-reading] .prose blockquote p {
+    text-indent: 0 !important;
+    margin-bottom: 0.5em !important;
+  }
+
+  /* --- 6.7 Drop Cap --- */
+  html[data-reading] .prose .content > p:first-of-type {
+    text-indent: 0 !important;
+  }
+  html[data-reading] .prose .content > p:first-of-type::first-letter {
+    float: left;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 3.2em;
+    line-height: 0.82;
+    padding-right: 0.06em;
+    padding-top: 0.05em;
+    margin-right: 0.02em;
+    color: var(--reading-dropcap);
+    font-weight: 400;
+  }
+  /* Skip drop cap when first element is a blockquote */
+  html[data-reading] .prose .content > blockquote:first-child + p::first-letter {
+    float: left;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 3.2em;
+    line-height: 0.82;
+    padding-right: 0.06em;
+    padding-top: 0.05em;
+    margin-right: 0.02em;
+    color: var(--reading-dropcap);
+    font-weight: 400;
+  }
+  html[data-reading] .prose .content > blockquote:first-child + p {
+    text-indent: 0 !important;
+  }
+
+  /* --- 6.8 Horizontal Rule (section break) --- */
+  html[data-reading] .prose hr {
+    border: none !important;
+    text-align: center;
+    margin: 3.5rem 0 !important;
+    background: transparent !important;
+  }
+  html[data-reading] .prose hr::after {
+    content: '\2022\2003\2022\2003\2022';
+    color: var(--reading-muted);
+    font-size: 0.9rem;
+    letter-spacing: 0.3em;
+  }
+
+  /* --- 6.9 Links --- */
+  html[data-reading] .prose .content a {
+    color: var(--reading-accent) !important;
+    text-decoration-color: rgba(160, 82, 45, 0.3);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.3s;
+  }
+  html[data-reading] .prose .content a:hover {
+    text-decoration-color: var(--reading-accent);
+  }
+
+  /* --- 6.10 Breadcrumb: simplify --- */
+  html[data-reading] .prose .mb-1 {
+    opacity: 0.6;
+    font-size: 0.8rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* --- 6.11 Navigation pager (prev/next) --- */
+  html[data-reading] .no-prose a {
+    color: var(--reading-accent) !important;
+    border-color: var(--reading-border) !important;
+  }
+
+  /* --- 6.12 Sidebar refinements --- */
+  html[data-reading] aside,
+  html[data-reading] aside a,
+  html[data-reading] aside span,
+  html[data-reading] .hb-sidebar-container,
+  html[data-reading] .hb-sidebar-container a {
+    font-family: 'LXGW WenKai Lite', 'EB Garamond', Georgia, serif !important;
+    color: var(--reading-fg) !important;
+    transition: color 0.2s;
+  }
+  html[data-reading] aside a:hover,
+  html[data-reading] .hb-sidebar-container a:hover {
+    color: var(--reading-accent) !important;
+  }
+  html[data-reading] aside {
+    background-color: var(--reading-bg) !important;
+  }
+
+  /* --- 6.13 Images --- */
+  html[data-reading] .prose img {
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    max-width: 90% !important;
+    margin: 2.5rem auto !important;
+    display: block;
+  }
+
+  /* --- 6.14 Lists (for TOC pages) --- */
+  html[data-reading] .prose .content ul,
+  html[data-reading] .prose .content ol {
+    margin-top: 1em !important;
+    margin-bottom: 1em !important;
+  }
+  html[data-reading] .prose .content li {
+    text-indent: 0 !important;
+    margin-bottom: 0.4em !important;
+  }
+
+  /* --- 6.15 Epigraph Shortcode --- */
+  html[data-reading] .epigraph {
+    margin: 3rem auto;
+    padding: 0;
+    max-width: 85%;
+  }
+  html[data-reading] .epigraph blockquote {
+    border-left: none !important;
+    text-align: center;
+    font-size: 1.05em !important;
+    color: var(--reading-fg) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  html[data-reading] .epigraph figcaption {
+    text-align: right;
+    color: var(--reading-muted);
+    font-size: 0.85em;
+    margin-top: 0.75rem;
+    font-style: normal;
+  }
+
+  /* --- 6.16 Right-side TOC ("On this page") --- */
+  html[data-reading] .hb-toc {
+    font-family: 'LXGW WenKai Lite', 'EB Garamond', Georgia, serif !important;
+  }
+  html[data-reading] .hb-toc p {
+    font-family: 'EB Garamond', 'LXGW WenKai Lite', Georgia, serif !important;
+    color: var(--reading-muted) !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  html[data-reading] .hb-toc a {
+    font-family: 'LXGW WenKai Lite', 'EB Garamond', Georgia, serif !important;
+    color: var(--reading-muted) !important;
+    font-size: 0.82rem !important;
+    font-weight: 400 !important;
+    line-height: 1.6 !important;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  html[data-reading] .hb-toc a:hover {
+    color: var(--reading-accent) !important;
+    border-left-color: var(--reading-accent);
+  }
+  html[data-reading] .hb-toc li {
+    margin: 0.3rem 0 !important;
+  }
+
+  /* --- 6.18 Responsive --- */
+  @media (max-width: 768px) {
+    html[data-reading] main.prose {
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+      max-width: 100% !important;
+    }
+    html[data-reading] .prose {
+      font-size: 1rem !important;
+    }
+  }
+</style>
+
+<!-- Mark <html> for CSS scoping (available immediately, no FOUC) -->
+<script>document.documentElement.setAttribute('data-reading', 'true');</script>
 {{ end }}
