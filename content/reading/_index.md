@@ -2,6 +2,8 @@
 title: Reading
 summary: 读书笔记与随想
 type: landing
+_build:
+  list: local
 
 cascade:
   - target:
@@ -17,6 +19,7 @@ sections:
     content:
       title: 读书笔记
       subtitle: "在荒诞中寻找意义"
+      count: 20
       filters:
         folders:
           - reading

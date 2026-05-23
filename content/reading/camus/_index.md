@@ -23,6 +23,9 @@ reading_section: true
 - [局外人 · L'Étranger](the-stranger/) — 默尔索在阳光下开了枪
 - [西西弗神话 · Le Mythe de Sisyphe](the-myth-of-sisyphus/) — 荒诞与反抗
 - [鼠疫 · La Peste](the-plague/) — 诚实地记录下瘟疫带来的一切
+- [堕落 · La Chute](the-fall/) — 在阿姆斯特丹的运河间审判自我
+- [流亡与独立王国 · L'Exil et le Royaume](exile-and-the-kingdom/) — 六个关于流亡与归属的故事
+- [第一个人 · Le Premier Homme](the-first-man/) — 未完成的自传体遗作
 
 ## 随笔
 
