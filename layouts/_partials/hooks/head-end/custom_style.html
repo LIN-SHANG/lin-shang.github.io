@@ -1,7 +1,10 @@
-<!-- 
+<!--
   文件位置: layouts/_partials/hooks/head-end/custom_style.html
   包含: 全局字体、颜色变量、代码高亮映射(Chroma+Prism)、PyScript依赖、宽屏适配
 -->
+
+<!-- LXGW WenKai Lite: CDN 分包 WOFF2 (按需加载，手机端友好) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-lite-webfont@1.7.0/lxgwwenkailite-regular.css" />
 
 <style>
   /* === 1. 基础设置 === */
@@ -9,12 +12,7 @@
   :not(pre) > code::before, :not(pre) > code::after, span.code::before, span.code::after { content: none !important; }
   :not(pre) > code { padding: 0.1rem 0.3rem !important; background-color: rgba(127, 127, 127, 0.12); border-radius: 4px; font-size: 0.9em; }
 
-  /* 字体定义 */
-  @font-face {
-    font-family: 'LXGW WenKai Lite';
-    src: url('{{ "font/LXGWWenKaiLite-Light.ttf" | relURL }}') format('truetype');
-    font-weight: normal; font-style: normal; display: swap;
-  }
+  /* 字体定义: 使用 CDN 分包 WOFF2 (按需加载，手机端友好) */
 
   /* === 2. 全局颜色变量 (Source of Truth) === */
   :root {
