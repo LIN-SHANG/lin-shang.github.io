@@ -7,7 +7,7 @@ weight: 90
 type: docs
 reading_section: true
 sidebar:
-  open: true
+  open: false
 ---
 
 这里记录一些与加缪相关的零散思考——不一定关于某本具体的书，可能是读后的联想、日常生活中的呼应，或者只是某个午后阳光下想起的一句话。

@@ -6,7 +6,7 @@ weight: 15
 type: docs
 reading_section: true
 sidebar:
-  open: true
+  open: false
 _build:
   list: local
 ---

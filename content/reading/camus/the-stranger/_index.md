@@ -7,7 +7,7 @@ weight: 10
 type: docs
 reading_section: true
 sidebar:
-  open: true
+  open: false
 ---
 
 > Aujourd'hui, maman est morte. Ou peut-être hier, je ne sais pas.

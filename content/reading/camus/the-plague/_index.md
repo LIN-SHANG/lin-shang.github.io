@@ -7,7 +7,7 @@ weight: 30
 type: docs
 reading_section: true
 sidebar:
-  open: true
+  open: false
 ---
 
 > Ce qui est naturel, c'est le microbe. Le reste — la santé, l'intégrité, la pureté, si vous voulez — c'est un effet de la volonté.

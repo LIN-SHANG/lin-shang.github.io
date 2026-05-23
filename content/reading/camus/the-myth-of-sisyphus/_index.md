@@ -7,7 +7,7 @@ weight: 20
 type: docs
 reading_section: true
 sidebar:
-  open: true
+  open: false
 ---
 
 > Il n'y a qu'un problème philosophique vraiment sérieux : c'est le suicide.

@@ -410,21 +410,38 @@
   }
 
   /* --- 6.12 Sidebar refinements --- */
+  html[data-reading] aside {
+    background-color: var(--reading-bg) !important;
+  }
   html[data-reading] aside,
-  html[data-reading] aside a,
   html[data-reading] aside span,
-  html[data-reading] .hb-sidebar-container,
+  html[data-reading] .hb-sidebar-container {
+    font-family: 'LXGW WenKai Lite', 'EB Garamond', Georgia, serif !important;
+  }
+  /* Sidebar links: higher base contrast */
+  html[data-reading] aside a,
   html[data-reading] .hb-sidebar-container a {
     font-family: 'LXGW WenKai Lite', 'EB Garamond', Georgia, serif !important;
-    color: var(--reading-fg) !important;
-    transition: color 0.2s;
+    color: var(--reading-muted) !important;
+    transition: color 0.2s, background-color 0.2s;
   }
   html[data-reading] aside a:hover,
   html[data-reading] .hb-sidebar-container a:hover {
     color: var(--reading-accent) !important;
+    background-color: var(--reading-surface) !important;
   }
-  html[data-reading] aside {
-    background-color: var(--reading-bg) !important;
+  /* Active page in sidebar: strong contrast */
+  html[data-reading] aside a[aria-current="page"],
+  html[data-reading] aside .font-medium,
+  html[data-reading] .hb-sidebar-container a[aria-current="page"] {
+    color: var(--reading-accent) !important;
+    font-weight: 600 !important;
+  }
+  /* Section headings in sidebar (parent sections) */
+  html[data-reading] aside .font-semibold,
+  html[data-reading] .hb-sidebar-container .font-semibold {
+    color: var(--reading-fg) !important;
+    font-weight: 500 !important;
   }
 
   /* --- 6.13 Images --- */
