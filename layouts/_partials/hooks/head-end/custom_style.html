@@ -8,6 +8,9 @@
 
 <style>
   /* === 1. 基础设置 === */
+  /* 隐藏 "Made with Hugo Blox" */
+  .page-footer .powered-by + .powered-by { display: none !important; }
+
   /* 去除行内代码反引号 */
   :not(pre) > code::before, :not(pre) > code::after, span.code::before, span.code::after { content: none !important; }
   :not(pre) > code { padding: 0.1rem 0.3rem !important; background-color: rgba(127, 127, 127, 0.12); border-radius: 4px; font-size: 0.9em; }

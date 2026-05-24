@@ -14,15 +14,15 @@ hugoblox:
   identity:
     # Site name - shown in navbar, footer, copyright, and browser title by default
     # Legal entity for copyright notices (defaults to name if not set)
-    organization: "Meituan"
+    organization: ""
     # Schema.org type for structured data
     type: person # person | organization | local_business
     # Social accounts (used for meta tags like Twitter Cards)
     social:
       twitter: suny_ray
-    name: M.S. Shanglin Lei
-    tagline: AI Researcher | Meituan
-    description: Reasoning AI researcher in Meituan LongCat Team. Hiring Interners!
+    name: Shanglin Lei
+    tagline: AI Researcher
+    description: Reasoning AI researcher. Interested in LLM reasoning, code generation, and the philosophy of the absurd.
 
   # ────────────────────────────────────────────────────────────────────────────
   # THEME
@@ -104,9 +104,10 @@ hugoblox:
   footer:
     # Footer style variant
     style: minimal # minimal | columns | centered
-    language_switcher: true
+    language_switcher: false
     # Custom footer text (HTML supported)
     text: ""
+    show_powered_by: false
 
   # ────────────────────────────────────────────────────────────────────────────
   # COPYRIGHT
@@ -114,12 +115,9 @@ hugoblox:
   # ────────────────────────────────────────────────────────────────────────────
   copyright:
     # Copyright notice - supports {year}, {name}, {license} placeholders
-    notice: "© {year} {name}. This work is licensed under {license}"
+    notice: "© {year} Shanglin Lei"
     license:
-      type: cc # cc | all_rights | custom
-      allow_derivatives: false
-      share_alike: true
-      allow_commercial: false
+      type: all_rights
 
   # ────────────────────────────────────────────────────────────────────────────
   # SEO
@@ -147,9 +145,9 @@ hugoblox:
         - /private/
         - /drafts/
         - /admin/
-      note: Personal academic website of Lin Shang, a Senior AI Algorithm Researcher at Meituan. This site contains publications, research projects, and blog posts about AI, Reasoning, and NLP.
-      contact: leishanglin@meitaun.com
-    title: Shanglin | AI Research | Meituan
+      note: Personal academic website of Shanglin Lei. Publications, research projects, and writings on AI reasoning and literature.
+      contact: ""
+    title: Shanglin Lei
 
   # ────────────────────────────────────────────────────────────────────────────
   # CONTENT
